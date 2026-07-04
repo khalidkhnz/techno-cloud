@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import serverlessExpress from "@codegenie/serverless-express";
+import { configure as serverlessExpress } from "@codegenie/serverless-express";
 import { ExpressAdapter } from "@nestjs/platform-express";
 import { NestFactory } from "@nestjs/core";
 import express from "express";

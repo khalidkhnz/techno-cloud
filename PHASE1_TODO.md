@@ -15,21 +15,21 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 ---
 
 ## 0. Repo & Tooling
-- [ ] Init Turborepo + pnpm workspace; strict `tsconfig` base
-- [ ] Layout: `apps/{web,api}`, `packages/{db,core,targets,providers,pulumi,costs,ui}`
-- [ ] Shared ESLint/Prettier; commit hooks
-- [ ] `.env` schema + validation (zod) in `packages/core`
+- [x] Init Turborepo + pnpm workspace; strict `tsconfig` base
+- [x] Layout: `apps/{web,api}`, `packages/{core,env,db,costs,targets,providers,pulumi,ui}`, `infra`
+- [ ] Shared ESLint/Prettier; commit hooks _(prettier dep added; config + hooks pending)_
+- [x] Validated env vars via **T3 Env** — `@t3-oss/env-core` in `packages/env` (server), `@t3-oss/env-nextjs` in `apps/web`
 - [ ] Local dev: Neon dev branch + LocalStack (or real AWS sandbox) for SQS/DynamoDB/S3
 
 ## 1. Core Types (`packages/core`)
-- [ ] `DeployTarget` (kinds incl. `lambda`, `amplify`), `SourceProvider`, `DeployContext`, `DeployResult`, `DeploymentStatus`, `LogLine`
-- [ ] `PlatformConfig` / feature-flag schema (serverless targets ON, Fargate/EC2 OFF by default)
-- [ ] Driver registries: `kind → DeployTarget`, `kind → SourceProvider`
-- [ ] `CostEstimate` type (for Costs Module hook, even if v1 lands in Phase 2)
+- [x] `DeployTarget` (kinds incl. `lambda`, `amplify`), `SourceProvider`, `DeployContext`, `DeployResult`, `DeploymentStatus`, `LogLine`
+- [x] `PlatformConfig` / feature-flag schema (serverless targets ON, Fargate/EC2 OFF by default)
+- [x] Driver registries: `kind → DeployTarget`, `kind → SourceProvider`
+- [x] `CostEstimate` type (for Costs Module hook, even if v1 lands in Phase 2)
 
 ## 2. Database (`packages/db`, Drizzle + Neon Postgres)
-- [ ] Connect via Neon **pooled endpoint** (`-pooler`) using `@neondatabase/serverless`
-- [ ] Schema: `User, Team, TeamMembership, Invite, Project, Environment, Deployment, BuildLog, PlatformConfig`
+- [x] Connect via Neon **pooled endpoint** (`-pooler`) using `@neondatabase/serverless` (URL from validated env)
+- [x] Schema: `User, Team, TeamMembership, Invite, Project, Environment, Deployment, AuditLog, PlatformConfig` (+ `FreeTierMeter` for Costs)
 - [ ] Migrations + seed (one admin, default PlatformConfig)
 - [ ] Verify connection pooling works from Lambda (no connection exhaustion)
 
@@ -41,7 +41,7 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 - [ ] RBAC enum stub (Owner/Admin/Developer/Viewer)
 
 ## 4. Control Plane API (`apps/api`, NestJS on Lambda)
-- [ ] Bootstrap NestJS; package for **Lambda arm64** (serverless-express adapter) behind **Function URL**
+- [x] Bootstrap NestJS + **Lambda arm64 handler** (serverless-express adapter, cached per container); health route _(Function URL wiring in §10)_
 - [ ] Config + Drizzle modules
 - [ ] **SQS** queues (`build`, `deploy`) + worker Lambda handlers
 - [ ] Modules: `auth`, `projects`, `deployments`, `webhooks`, `logs`

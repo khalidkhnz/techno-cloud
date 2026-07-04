@@ -18,6 +18,7 @@
     "@techno-deployer/core": "workspace:*",
     "@techno-deployer/costs": "workspace:*",
     "@techno-deployer/db": "workspace:*",
+    "@techno-deployer/env": "workspace:*",
     "@techno-deployer/providers": "workspace:*",
     "@techno-deployer/targets": "workspace:*",
     "express": "^4.21.0",

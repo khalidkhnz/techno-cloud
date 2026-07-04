@@ -45,8 +45,8 @@ and the Costs Module shows per-app estimates + free-tier meters with alerts.
 - [ ] Guard: no rollback to failed/destroyed deployments
 
 ## 7. Costs Module v1 (`packages/costs`) — see COSTS_MODULE.md
-- [ ] Rate card (`rates.ts`) seeded from `PRICING_REFERENCE.md` with `asOf` + source URLs
-- [ ] `estimateCost()` implemented per target; surfaced in target picker + deploy screen (low/high range)
+- [x] Rate card (`rates.ts`) seeded from `PRICING_REFERENCE.md` with `asOf` + source URLs + `FREE_TIER` allowances
+- [~] `estimateCost()` implemented per target _(done: lambda/fargate/ec2 estimators, wired into lambda+amplify drivers; remaining: static-cdn/apprunner + surface in UI)_
 - [ ] Resource tagging in Pulumi: `td:project/team/env/deploymentId/target`
 - [ ] **Free-tier meters** from CloudWatch + Neon API (Lambda, SQS, DynamoDB, CodeBuild, CloudWatch, CloudFront, Amplify, Neon)
 - [ ] Alerts at 80/95/100% via EventBridge Scheduler → Lambda → Nodemailer

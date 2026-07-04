@@ -5,6 +5,5 @@
     "rootDir": "./src",
     "types": ["node"]
   },
-  "references": [{ "path": "../env" }],
   "include": ["src/**/*.ts"]
 }

@@ -69,6 +69,7 @@ techno-deployer/
 ├── packages/
 │   ├── db/                  # Drizzle schema, migrations, Neon client (pooled)
 │   ├── core/                # domain types, DeployTarget/SourceProvider interfaces, flags, cost types
+│   ├── env/                 # validated env vars (T3 Env: @t3-oss/env-core + zod)
 │   ├── targets/             # drivers: lambda, amplify, static-cdn, apprunner, ecs-fargate, ec2
 │   ├── providers/           # git: github, gitlab, bitbucket, zip
 │   ├── pulumi/              # reusable Pulumi ComponentResources
@@ -246,6 +247,8 @@ DynamoDB holds only **ephemeral/hot state**: stack locks, idempotency keys, log-
 ## 14. Conventions
 
 - pnpm workspaces + Turborepo; strict TS; shared types from `packages/core`.
+- All env vars validated via **T3 Env** — server (`packages/env`, `@t3-oss/env-core`) and web
+  client (`apps/web/env.ts`, `@t3-oss/env-nextjs`). No raw `process.env` access in app code.
 - Every deploy target and source provider implements its interface — no core changes to add one.
 - All AWS mutations go through Pulumi (no ad-hoc SDK provisioning) except read-only status/logs.
 - Feature flags checked in drivers, not just UI. Prefer arm64 + serverless + free-tier services by default.
