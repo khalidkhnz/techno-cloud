@@ -1,0 +1,4 @@
+name: techno-deployer-platform
+runtime: nodejs
+description: Platform's own AWS infrastructure (all serverless — no NAT/ALB/RDS/Redis).
+# State backend is self-managed S3; configure via `pulumi login s3://<bucket>`.

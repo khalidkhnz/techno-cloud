@@ -1,0 +1,28 @@
+# deps
+node_modules/
+.pnpm-store/
+
+# build outputs
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# turbo
+.turbo/
+
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# pulumi
+Pulumi.*.yaml
+!Pulumi.yaml
+.pulumi/
+
+# logs / os
+*.log
+.DS_Store
+coverage/
