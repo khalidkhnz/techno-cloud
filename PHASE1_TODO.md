@@ -54,7 +54,7 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 - [ ] `fetchSource()` writes normalized bundle to S3
 
 ## 6. Build Pipeline (CodeBuild)
-- [ ] Provision reusable CodeBuild project (Pulumi) with ECR push perms, arm compute
+- [ ] Provision reusable CodeBuild project (Pulumi) with ECR push perms, arm compute _(SECURITY: reject `sourceLocationOverride`/`buildspecOverride` at StartBuild — validate inputs in the deploy Lambda before calling)_
 - [ ] Build detector: Dockerfile present? use it : generate via **Nixpacks**
 - [ ] Build worker Lambda triggers CodeBuild; tracks status
 - [ ] Stream CodeBuild/CloudWatch logs → `BuildLog` + expose via polling endpoint
@@ -85,7 +85,7 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 - [x] Pulumi stack: S3 (state+artifacts, versioned/private), DynamoDB (locks + idempotency+TTL), SQS (build/deploy + DLQs), ECR (scan+lifecycle), Route 53 zone, ACM wildcard cert _(authored + typechecks; not yet `pulumi up`'d)_
 - [ ] Deploy `apps/api` + workers as **Lambda** functions (Function URL + SQS triggers)
 - [ ] Neon project + pooled connection string in Parameter Store
-- [x] IAM roles: CodeBuild (build + Pulumi provisioning) + shared Lambda exec role _(least-privilege pass deferred to PHASE4 §7)_
+- [x] IAM roles: CodeBuild (PowerUser + boundary-enforced `${prefix}-app-*` role mgmt, denies priv-esc) + Lambda exec role (scoped SQS/DynamoDB/artifacts-only/SSM-path/StartBuild-project-ARN) _(deeper per-project STS AssumeRole split → PHASE4 §7)_
 - [x] Confirm: no NAT Gateway, no ALB, no RDS, no Redis, no always-on compute
 
 ## 11. Verify
