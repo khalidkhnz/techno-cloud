@@ -45,7 +45,8 @@ infra/       Pulumi stack (all AWS infra incl. the platform's own compute)
 
 ## Tech stack
 
-- **Frontend:** Next.js (App Router) + Tailwind CSS, hosted on **AWS Amplify**
+- **Frontend:** Next.js (App Router, client-rendered) + Tailwind + **shadcn/ui**, **TanStack Query**
+  (custom query/mutation hooks), **Framer Motion**; dark liquid-glass design system — on **AWS Amplify**
 - **API:** NestJS on **AWS Lambda** (arm64) + Function URL
 - **Workers:** SQS → Lambda · **Crons:** EventBridge Scheduler
 - **Builds & Pulumi runs:** AWS CodeBuild (Dockerfile-first, Nixpacks fallback)
