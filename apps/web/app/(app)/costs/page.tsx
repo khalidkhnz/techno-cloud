@@ -1,157 +1,181 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { api, type Budget, type CostSnapshot, type FreeTierMeter } from "@/lib/api";
-import { useSession } from "@/lib/auth-client";
-
-const STATUS_COLOR: Record<FreeTierMeter["status"], string> = {
-  ok: "#2e8b57",
-  warn: "#b8860b",
-  alert: "#e07000",
-  exceeded: "crimson",
-};
+import { useState } from "react";
+import { Activity, DollarSign, Gauge, Lightbulb, Plus, Trash2, TriangleAlert } from "lucide-react";
+import { PageHeader } from "@/components/app/page-header";
+import { StatCard } from "@/components/app/stat-card";
+import { MeterBar } from "@/components/app/meter-bar";
+import { FadeIn, Stagger, StaggerItem } from "@/components/motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  useBudgets,
+  useCostAdvice,
+  useCostSnapshots,
+  useCreateBudget,
+  useDeleteBudget,
+  useMeters,
+} from "@/lib/query/costs";
 
 export default function CostsPage() {
-  const router = useRouter();
-  const { data: session, isPending } = useSession();
-  const [meters, setMeters] = useState<FreeTierMeter[]>([]);
-  const [snapshots, setSnapshots] = useState<CostSnapshot[]>([]);
-  const [budgets, setBudgets] = useState<Budget[]>([]);
-  const [budgetAmount, setBudgetAmount] = useState("");
-  const [advice, setAdvice] = useState<{
-    suggestions: { project: string; name: string; recommendation?: string }[];
-    rateCard: { asOf: string; stale: boolean };
-  } | null>(null);
+  const { data: meters, isLoading: metersLoading } = useMeters();
+  const { data: snapshots } = useCostSnapshots();
+  const { data: advice } = useCostAdvice();
+  const { data: budgets } = useBudgets();
+  const createBudget = useCreateBudget();
+  const deleteBudget = useDeleteBudget();
+  const [amount, setAmount] = useState("");
 
-  const loadBudgets = () => api.getBudgets().then(setBudgets).catch(() => {});
-
-  useEffect(() => {
-    if (!isPending && !session) {
-      router.replace("/login");
-      return;
-    }
-    if (session) {
-      api.getMeters().then(setMeters).catch(() => {});
-      api.getCostSnapshots().then(setSnapshots).catch(() => {});
-      api.getCostAdvice().then(setAdvice).catch(() => {});
-      loadBudgets();
-    }
-  }, [isPending, session, router]);
-
-  const globalSnapshots = snapshots.filter((s) => s.scope === "global").slice(0, 5);
-
-  if (isPending || !session) return null;
+  const globalSnapshots = (snapshots ?? []).filter((s) => s.scope === "global").slice(0, 5);
+  const latest = globalSnapshots[0];
+  const breached = (meters ?? []).filter((m) => m.status !== "ok").length;
 
   return (
-    <main className="container-app">
-      <Link href="/projects" className="text-sm">
-        ← Projects
-      </Link>
-      <h1 className="mt-2">Free-tier usage</h1>
-      <p className="muted">
-        Consumption against AWS always-free monthly allowances. Warn ≥80%, alert ≥95%.
-      </p>
+    <FadeIn>
+      <PageHeader
+        title="Costs"
+        description="Free-tier usage, reconciled spend, and budgets."
+      />
 
-      <ul className="mt-4 space-y-3">
-        {meters.map((m) => (
-          <li key={`${m.service}:${m.metric}`} className="card">
-            <div className="flex justify-between text-sm">
-              <span>
-                <strong>{m.service}</strong> · {m.metric}
-              </span>
-              <span style={{ color: STATUS_COLOR[m.status] }}>
-                {m.used.toLocaleString()} / {m.limit.toLocaleString()} {m.unit} ({m.pct}%)
-              </span>
-            </div>
-            <div style={{ background: "#eee", borderRadius: 4, height: 8, overflow: "hidden" }}>
-              <div
-                style={{
-                  width: `${Math.min(100, m.pct)}%`,
-                  height: "100%",
-                  background: STATUS_COLOR[m.status],
-                }}
-              />
-            </div>
-          </li>
-        ))}
-        {meters.length === 0 && <li style={{ color: "#888" }}>No meter data.</li>}
-      </ul>
+      <div className="mb-6 grid gap-4 sm:grid-cols-3">
+        <StatCard
+          label="Month-to-date"
+          value={latest ? `$${Number(latest.actualUsd).toFixed(2)}` : "—"}
+          hint={latest ? `${latest.period} · all projects` : "poller runs daily"}
+          icon={DollarSign}
+        />
+        <StatCard
+          label="Meters tracked"
+          value={meters?.length ?? 0}
+          hint="AWS always-free allowances"
+          icon={Gauge}
+        />
+        <StatCard
+          label="At risk"
+          value={breached}
+          hint="meters over 80%"
+          icon={Activity}
+        />
+      </div>
 
       {advice && (advice.suggestions.length > 0 || advice.rateCard.stale) && (
-        <>
-          <h2 className="mt-8">Suggestions</h2>
-          <ul className="mt-2 space-y-1 text-sm">
-            {advice.suggestions.map((s) => (
-              <li key={s.project} className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2">
-                <strong>{s.name}</strong>: {s.recommendation}
-              </li>
-            ))}
-            {advice.rateCard.stale && (
-              <li className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2">
-                Pricing rate card (as of {advice.rateCard.asOf}) is &gt;90 days old — re-verify against
-                official AWS pricing.
-              </li>
-            )}
-          </ul>
-        </>
+        <div className="mb-6 grid gap-2">
+          <h2 className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <Lightbulb className="h-4 w-4 text-amber-300" /> Suggestions
+          </h2>
+          {advice.suggestions.map((s) => (
+            <div
+              key={s.project}
+              className="rounded-xl border border-amber-500/20 bg-amber-500/[0.06] px-4 py-2.5 text-sm text-amber-100"
+            >
+              <span className="font-medium">{s.name}</span>: {s.recommendation}
+            </div>
+          ))}
+          {advice.rateCard.stale && (
+            <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] px-4 py-2.5 text-sm text-amber-100">
+              <TriangleAlert className="h-4 w-4 shrink-0" />
+              Pricing rate card (as of {advice.rateCard.asOf}) is &gt;90 days old — re-verify pricing.
+            </div>
+          )}
+        </div>
       )}
 
-      <h2 className="mt-8">Reconciled cost (Cost Explorer)</h2>
-      <ul className="mt-2 divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
-        {globalSnapshots.map((s) => (
-          <li key={s.id} className="flex items-center justify-between px-4 py-2 text-sm">
-            <span>{s.period} (all projects)</span>
-            <span className="font-medium">${Number(s.actualUsd).toFixed(2)}</span>
-          </li>
-        ))}
-        {globalSnapshots.length === 0 && (
-          <li className="muted px-4 py-2">No snapshots yet (poller runs daily).</li>
-        )}
-      </ul>
+      <h2 className="mb-3 text-sm font-medium text-muted-foreground">Free-tier usage</h2>
+      {metersLoading ? (
+        <div className="grid gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 rounded-xl bg-white/[0.04]" />
+          ))}
+        </div>
+      ) : meters && meters.length > 0 ? (
+        <Stagger className="grid gap-3">
+          {meters.map((m) => (
+            <StaggerItem key={`${m.service}:${m.metric}`}>
+              <MeterBar
+                label={`${m.service} · ${m.metric}`}
+                used={m.used}
+                limit={m.limit}
+                unit={m.unit}
+                pct={m.pct}
+                status={m.status}
+              />
+            </StaggerItem>
+          ))}
+        </Stagger>
+      ) : (
+        <p className="text-sm text-muted-foreground">No meter data.</p>
+      )}
 
-      <h2 className="mt-8">Budgets</h2>
-      <ul className="mt-2 divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
-        {budgets.map((b) => (
-          <li key={b.id} className="flex items-center justify-between px-4 py-2 text-sm">
-            <span>
-              {b.scope}
-              {b.refId ? ` · ${b.refId.slice(0, 8)}` : ""} — ${Number(b.thresholdUsd).toFixed(2)}/mo
-            </span>
-            <button className="btn btn-secondary" onClick={() => api.deleteBudget(b.id).then(loadBudgets)}>
-              remove
-            </button>
-          </li>
-        ))}
-        {budgets.length === 0 && <li className="muted px-4 py-2">No budgets.</li>}
-      </ul>
+      <h2 className="mb-3 mt-8 text-sm font-medium text-muted-foreground">
+        Reconciled cost (Cost Explorer)
+      </h2>
+      <div className="glass overflow-hidden rounded-xl">
+        <ul className="divide-y divide-white/[0.06]">
+          {globalSnapshots.map((s) => (
+            <li key={s.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
+              <span className="text-muted-foreground">{s.period} · all projects</span>
+              <span className="font-mono font-medium text-foreground">
+                ${Number(s.actualUsd).toFixed(2)}
+              </span>
+            </li>
+          ))}
+          {globalSnapshots.length === 0 && (
+            <li className="px-4 py-2.5 text-sm text-muted-foreground">
+              No snapshots yet (poller runs daily).
+            </li>
+          )}
+        </ul>
+      </div>
+
+      <h2 className="mb-3 mt-8 text-sm font-medium text-muted-foreground">Budgets</h2>
+      <div className="glass overflow-hidden rounded-xl">
+        <ul className="divide-y divide-white/[0.06]">
+          {(budgets ?? []).map((b) => (
+            <li key={b.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
+              <span className="text-foreground">
+                {b.scope}
+                {b.refId ? ` · ${b.refId.slice(0, 8)}` : ""} —{" "}
+                <span className="font-mono">${Number(b.thresholdUsd).toFixed(2)}/mo</span>
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-zinc-500 hover:text-red-300"
+                onClick={() => deleteBudget.mutate(b.id)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </li>
+          ))}
+          {(!budgets || budgets.length === 0) && (
+            <li className="px-4 py-2.5 text-sm text-muted-foreground">No budgets.</li>
+          )}
+        </ul>
+      </div>
       <form
-        className="mt-2 flex gap-2"
+        className="mt-3 flex gap-2"
         onSubmit={(e) => {
           e.preventDefault();
-          api
-            .createBudget({ scope: "global", thresholdUsd: Number(budgetAmount) })
-            .then(() => {
-              setBudgetAmount("");
-              loadBudgets();
-            })
-            .catch(() => {});
+          createBudget.mutate(
+            { scope: "global", thresholdUsd: Number(amount) },
+            { onSuccess: () => setAmount("") },
+          );
         }}
       >
-        <input
-          className="input max-w-[10rem]"
+        <Input
+          className="max-w-[11rem]"
           type="number"
           step="0.01"
           placeholder="global $/mo"
-          value={budgetAmount}
-          onChange={(e) => setBudgetAmount(e.target.value)}
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
           required
         />
-        <button className="btn" type="submit">
-          Set budget
-        </button>
+        <Button type="submit" size="sm" disabled={createBudget.isPending}>
+          <Plus className="h-3.5 w-3.5" /> Set budget
+        </Button>
       </form>
-    </main>
+    </FadeIn>
   );
 }
