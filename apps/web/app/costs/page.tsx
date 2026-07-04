@@ -29,19 +29,19 @@ export default function CostsPage() {
   if (isPending || !session) return null;
 
   return (
-    <main style={{ fontFamily: "system-ui", padding: "2rem", maxWidth: 760 }}>
-      <p>
-        <Link href="/projects">← Projects</Link>
-      </p>
-      <h1>Free-tier usage</h1>
-      <p style={{ color: "#888", fontSize: 12 }}>
+    <main className="container-app">
+      <Link href="/projects" className="text-sm">
+        ← Projects
+      </Link>
+      <h1 className="mt-2">Free-tier usage</h1>
+      <p className="muted">
         Consumption against AWS always-free monthly allowances. Warn ≥80%, alert ≥95%.
       </p>
 
-      <ul style={{ listStyle: "none", padding: 0 }}>
+      <ul className="mt-4 space-y-3">
         {meters.map((m) => (
-          <li key={`${m.service}:${m.metric}`} style={{ margin: "0.75rem 0" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14 }}>
+          <li key={`${m.service}:${m.metric}`} className="card">
+            <div className="flex justify-between text-sm">
               <span>
                 <strong>{m.service}</strong> · {m.metric}
               </span>

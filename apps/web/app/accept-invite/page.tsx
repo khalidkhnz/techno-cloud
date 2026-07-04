@@ -45,11 +45,15 @@ function AcceptInvite() {
 
 export default function AcceptInvitePage() {
   return (
-    <main style={{ fontFamily: "system-ui", padding: "3rem", maxWidth: 420 }}>
-      <h1>Accept invite</h1>
-      <Suspense fallback={<p>Loading…</p>}>
-        <AcceptInvite />
-      </Suspense>
+    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-6">
+      <div className="card">
+        <h1>Accept invite</h1>
+        <div className="mt-3 text-sm">
+          <Suspense fallback={<p>Loading…</p>}>
+            <AcceptInvite />
+          </Suspense>
+        </div>
+      </div>
     </main>
   );
 }

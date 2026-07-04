@@ -40,30 +40,33 @@ export default function InviteUserPage() {
   }
 
   return (
-    <main style={{ fontFamily: "system-ui", padding: "2rem", maxWidth: 420 }}>
-      <p>
-        <Link href="/projects">← Projects</Link>
-      </p>
-      <h1>Invite a user</h1>
-      <form onSubmit={invite} style={{ display: "grid", gap: 8 }}>
+    <main className="container-app max-w-md">
+      <Link href="/projects" className="text-sm">
+        ← Projects
+      </Link>
+      <h1 className="mt-2">Invite a user</h1>
+      <form onSubmit={invite} className="card mt-4 grid gap-2">
         <input
+          className="input"
           type="email"
           placeholder="teammate@company.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-        <select value={role} onChange={(e) => setRole(e.target.value)}>
+        <select className="input" value={role} onChange={(e) => setRole(e.target.value)}>
           {ROLES.map((r) => (
             <option key={r} value={r}>
               {r}
             </option>
           ))}
         </select>
-        <button type="submit">Send invite</button>
+        <button className="btn" type="submit">
+          Send invite
+        </button>
       </form>
-      {msg && <p style={{ color: "#2e8b57" }}>{msg}</p>}
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+      {msg && <p className="mt-3 text-sm text-green-700">{msg}</p>}
+      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
     </main>
   );
 }
