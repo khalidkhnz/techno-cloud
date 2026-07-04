@@ -90,8 +90,16 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ email, role }),
     }),
+  updateMemberRole: (teamId: string, userId: string, role: string) =>
+    req<unknown>(`/teams/${teamId}/members/${userId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ role }),
+    }),
   removeMember: (teamId: string, userId: string) =>
     req<{ ok: boolean }>(`/teams/${teamId}/members/${userId}`, { method: "DELETE" }),
+  listInvites: () => req<Invite[]>("/invites"),
+  getMeterAlerts: () =>
+    req<{ summary: Record<string, number>; breached: FreeTierMeter[] }>("/meters/alerts"),
   listEnvironments: (projectId: string) =>
     req<Environment[]>(`/projects/${projectId}/environments`),
   createEnvironment: (projectId: string, body: { kind: string; name: string }) =>
@@ -194,6 +202,15 @@ export interface Budget {
   refId: string | null;
   thresholdUsd: string;
   enabled: boolean;
+}
+
+export interface Invite {
+  id: string;
+  email: string;
+  teamId: string;
+  role: string;
+  acceptedAt: string | null;
+  createdAt: string;
 }
 
 export interface FreeTierMeter {
