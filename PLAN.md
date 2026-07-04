@@ -73,6 +73,7 @@ techno-deployer/
 │   ├── targets/             # drivers: lambda, amplify, static-cdn, apprunner, ecs-fargate, ec2
 │   ├── providers/           # git: github, gitlab, bitbucket, zip
 │   ├── pulumi/              # reusable Pulumi ComponentResources
+│   ├── aws/                 # SQS producers + DynamoDB stack-lock (withLock)
 │   ├── costs/               # cost estimation + free-tier meters + reconciliation (Costs Module)
 │   └── ui/                  # shared shadcn components
 ├── infra/                   # Pulumi stacks for the platform itself

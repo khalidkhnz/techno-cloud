@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { HealthController } from "./health.controller.js";
 import { DrizzleModule } from "./drizzle/drizzle.module.js";
 import { ProjectsModule } from "./projects/projects.module.js";
+import { DeploymentsModule } from "./deployments/deployments.module.js";
 import { PlatformConfigModule } from "./platform-config/platform-config.module.js";
 
 /**
@@ -9,7 +10,7 @@ import { PlatformConfigModule } from "./platform-config/platform-config.module.j
  * Workers (build/deploy) are separate Lambda handlers fed by SQS — see PLAN.md §5.
  */
 @Module({
-  imports: [DrizzleModule, ProjectsModule, PlatformConfigModule],
+  imports: [DrizzleModule, ProjectsModule, DeploymentsModule, PlatformConfigModule],
   controllers: [HealthController],
 })
 export class AppModule {}
