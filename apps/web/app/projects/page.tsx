@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { api, type Project } from "../../lib/api";
+import { ALWAYS_ON_TARGETS, TARGET_FLAG, api, type PlatformConfig, type Project } from "../../lib/api";
 import { signOut, useSession } from "../../lib/auth-client";
 
 const TARGETS = ["lambda", "amplify", "static-cdn", "apprunner", "ecs-fargate", "ec2"];
@@ -19,6 +19,7 @@ export default function ProjectsPage() {
   const [estimates, setEstimates] = useState<
     Record<string, { monthlyLowUsd: number; monthlyHighUsd: number }>
   >({});
+  const [config, setConfig] = useState<PlatformConfig | null>(null);
 
   const load = () =>
     api
@@ -34,10 +35,14 @@ export default function ProjectsPage() {
     if (session) {
       load();
       api.getEstimates().then(setEstimates).catch(() => {});
+      api.getPlatformConfig().then(setConfig).catch(() => {});
     }
   }, [isPending, session, router]);
 
   const est = estimates[target];
+  const availableTargets = config
+    ? TARGETS.filter((t) => config.targets[TARGET_FLAG[t] ?? ""])
+    : TARGETS;
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
@@ -73,7 +78,7 @@ export default function ProjectsPage() {
         <input placeholder="Project name" value={name} onChange={(e) => setName(e.target.value)} required />
         <input placeholder="owner/repo" value={repo} onChange={(e) => setRepo(e.target.value)} />
         <select value={target} onChange={(e) => setTarget(e.target.value)}>
-          {TARGETS.map((t) => (
+          {availableTargets.map((t) => (
             <option key={t} value={t}>
               {t}
             </option>
@@ -82,6 +87,11 @@ export default function ProjectsPage() {
         {est && (
           <small style={{ color: "#888" }}>
             Est. ~${est.monthlyLowUsd}–${est.monthlyHighUsd}/mo
+          </small>
+        )}
+        {ALWAYS_ON_TARGETS.includes(target) && (
+          <small style={{ color: "#b8860b" }}>
+            ⚠ Always-on target — billed 24/7 (does not scale to zero).
           </small>
         )}
         <button type="submit">Create project</button>

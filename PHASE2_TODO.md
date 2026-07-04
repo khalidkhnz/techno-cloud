@@ -53,9 +53,9 @@ and the Costs Module shows per-app estimates + free-tier meters with alerts.
 - [ ] Dashboard: overview + per-project cost estimate + meter bars
 
 ## 8. Feature Flags Expansion
-- [ ] Wire `staticCdn`, `appRunner`, `ecsFargate` flags into drivers + UI availability
-- [ ] Per-project target allow-list respected in UI + API
-- [ ] Cost-flag warnings when enabling always-on targets
+- [~] Flags wired into UI availability + API create validation (`isTargetEnabled`/`enabledTargets` in core); driver-level flag checks pending (drivers stubbed)
+- [x] Target allow-list respected: UI filters the picker to enabled targets; API `create` rejects a disabled target (400)
+- [x] Cost warning on always-on targets (apprunner/ecs-fargate/ec2) in the create form
 
 ## 9. Verify
 - [ ] Matrix: {github, gitlab, bitbucket, zip} × {lambda, amplify, static-cdn, apprunner, ecs-fargate}

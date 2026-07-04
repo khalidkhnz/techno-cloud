@@ -41,6 +41,29 @@ export interface PlatformConfig {
   limits: PlatformLimits;
 }
 
+/** Maps a target kind to its feature-flag key. */
+export const TARGET_FLAG_KEY: Record<DeployTargetKind, keyof TargetFlags> = {
+  lambda: "lambda",
+  amplify: "amplify",
+  "static-cdn": "staticCdn",
+  apprunner: "appRunner",
+  "ecs-fargate": "ecsFargate",
+  ec2: "ec2",
+};
+
+/** Targets that do NOT scale to zero (always-on cost) — surfaced as a cost warning. */
+export const ALWAYS_ON_TARGETS: DeployTargetKind[] = ["apprunner", "ecs-fargate", "ec2"];
+
+export function isTargetEnabled(config: PlatformConfig, kind: DeployTargetKind): boolean {
+  return config.targets[TARGET_FLAG_KEY[kind]];
+}
+
+export function enabledTargets(config: PlatformConfig): DeployTargetKind[] {
+  return (Object.keys(TARGET_FLAG_KEY) as DeployTargetKind[]).filter((k) =>
+    isTargetEnabled(config, k),
+  );
+}
+
 /** Cost-optimized defaults: serverless targets ON, always-on targets OFF. */
 export const DEFAULT_PLATFORM_CONFIG: PlatformConfig = {
   targets: {

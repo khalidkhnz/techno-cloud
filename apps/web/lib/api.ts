@@ -53,6 +53,7 @@ export const api = {
     req<{ id: string; email: string }>("/invites", { method: "POST", body: JSON.stringify(body) }),
   getEstimates: () =>
     req<Record<string, { monthlyLowUsd: number; monthlyHighUsd: number }>>("/estimates"),
+  getPlatformConfig: () => req<PlatformConfig>("/platform-config"),
   listEnvVars: (projectId: string) =>
     req<EnvVar[]>(`/projects/${projectId}/env?scope=production`),
   upsertEnvVar: (projectId: string, body: { key: string; value: string; isSecret: boolean }) =>
@@ -74,3 +75,21 @@ export interface EnvVar {
   isSecret: boolean;
   value: string;
 }
+
+export interface PlatformConfig {
+  targets: Record<string, boolean>;
+  routing: { subdomains: boolean; customDomains: boolean; previews: boolean };
+  limits: { maxConcurrentBuilds: number; previewTtlHours: number; maxAppsPerTeam: number };
+}
+
+/** target kind → PlatformConfig.targets flag key */
+export const TARGET_FLAG: Record<string, string> = {
+  lambda: "lambda",
+  amplify: "amplify",
+  "static-cdn": "staticCdn",
+  apprunner: "appRunner",
+  "ecs-fargate": "ecsFargate",
+  ec2: "ec2",
+};
+
+export const ALWAYS_ON_TARGETS = ["apprunner", "ecs-fargate", "ec2"];
