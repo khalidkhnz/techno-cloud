@@ -13,6 +13,7 @@ import {
   db,
   eq,
   invites,
+  rateLimits,
   sessions,
   teamMemberships,
   users,
@@ -31,9 +32,23 @@ export const auth = betterAuth({
       session: sessions,
       account: accounts,
       verification: verifications,
+      rateLimit: rateLimits,
     },
   }),
   emailAndPassword: { enabled: true },
+  // Durable rate limiting (Lambda is ephemeral — in-memory won't hold across invocations).
+  // Mitigates brute-force / denial-of-wallet on the public Function URL.
+  rateLimit: {
+    enabled: true,
+    storage: "database",
+    window: 60,
+    max: 30,
+    customRules: {
+      "/sign-in/email": { window: 60, max: 5 },
+      "/email-otp/send-verification-otp": { window: 60, max: 3 },
+      "/sign-in/email-otp": { window: 60, max: 5 },
+    },
+  },
   plugins: [
     emailOTP({
       async sendVerificationOTP({ email, otp, type }) {

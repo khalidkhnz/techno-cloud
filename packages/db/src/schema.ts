@@ -4,6 +4,7 @@
  */
 
 import {
+  bigint,
   boolean,
   integer,
   jsonb,
@@ -89,6 +90,14 @@ export const verifications = pgTable("verifications", {
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Better Auth database-backed rate limiting (durable across ephemeral Lambda instances).
+export const rateLimits = pgTable("rate_limits", {
+  id: text("id").primaryKey(),
+  key: text("key"),
+  count: integer("count"),
+  lastRequest: bigint("last_request", { mode: "number" }),
 });
 
 export const teams = pgTable("teams", {

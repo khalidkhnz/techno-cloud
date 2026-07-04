@@ -53,7 +53,7 @@ Module flags waste and suggests cheaper targets.
 - [ ] Secret rotation (Secrets Manager where required)
 - [ ] Network review (VPC endpoints for S3/ECR/DynamoDB; SGs; private access)
 - [ ] Dependency + image scanning in build pipeline
-- [ ] Rate limiting + brute-force protection on auth (Function URL / WAF)
+- [x] Rate limiting on auth — Better Auth **database-backed** (durable across ephemeral Lambda), strict custom rules on sign-in + OTP send/verify; WAF/CloudFront in front still pending
 
 ## 8. Observability & Ops
 - [ ] Dashboards: build times, deploy success rate, queue depth, DLQ, error rates, cold-start latency
