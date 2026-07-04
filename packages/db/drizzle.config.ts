@@ -1,4 +1,8 @@
+import { resolve } from "node:path";
+import { config as loadEnv } from "dotenv";
 import { defineConfig } from "drizzle-kit";
+
+loadEnv({ path: resolve(process.cwd(), "../../.env") }); // db:migrate/generate read root .env
 
 export default defineConfig({
   schema: "./src/schema.ts",

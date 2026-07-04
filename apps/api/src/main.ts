@@ -1,3 +1,4 @@
+import "./load-env.js"; // MUST be first — loads root .env before env validation
 import "reflect-metadata";
 import express from "express";
 import { NestFactory } from "@nestjs/core";

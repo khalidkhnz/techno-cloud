@@ -89,10 +89,15 @@ See [`COST_BREAKDOWN.md`](./COST_BREAKDOWN.md) for detail and caveats.
 
 ```bash
 nvm use && pnpm install
-cp .env.example .env            # set DATABASE_URL (Neon pooled) + ADMIN_EMAIL
+cp .env.example .env            # ← single .env at the REPO ROOT; set DATABASE_URL (Neon pooled) + ADMIN_EMAIL
 pnpm --filter @techno-deployer/db db:migrate                 # apply migrations (0000–0009)
 ADMIN_EMAIL=you@company.com pnpm --filter @techno-deployer/db db:seed   # default team + owner invite
 ```
+
+> **Where does `.env` go?** One file at the **repo root**. The API (`dev`) and db scripts
+> (`db:migrate` / `db:seed` / `db:generate`) auto-load it. The Next.js dashboard reads env from
+> `apps/web` but `NEXT_PUBLIC_API_URL` defaults to `http://localhost:3001`, so it needs no `.env`
+> locally — override via `apps/web/.env.local` if your API runs elsewhere.
 
 ### Run
 

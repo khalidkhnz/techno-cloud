@@ -6,6 +6,7 @@
  * Run: `ADMIN_EMAIL=you@company.com pnpm --filter @techno-deployer/db db:seed`
  */
 
+import "./load-env.js"; // load root .env before env validation
 import { randomUUID } from "node:crypto";
 import { DEFAULT_PLATFORM_CONFIG } from "@techno-deployer/core";
 import { env } from "@techno-deployer/env";
