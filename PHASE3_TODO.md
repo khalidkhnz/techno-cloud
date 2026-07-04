@@ -11,10 +11,10 @@ the Costs Module reconciles estimated vs actual spend per project and enforces b
 ---
 
 ## 1. Preview / Branch Deployments
-- [ ] On PR open/push: ephemeral `Environment` + Pulumi stack `project:preview-<pr>`
-- [ ] Default previews to **serverless targets** (Lambda/Amplify/Static) to keep them ~free
-- [ ] Assign preview subdomain (`<app>-pr-<n>.deploy.internal`)
-- [ ] Post preview URL back as commit/PR comment via SourceProvider
+- [x] On PR open: ephemeral env `pr-<n>` (kind preview) + per-PR stack (env-name naming) building the PR branch (`deployment.ref`); PR close → destroy — GitHub/GitLab/Bitbucket PR parsing
+- [~] Previews use the project's target (serverless default via flags); per-PR isolation ✓
+- [~] Preview URL from the deploy (Function URL / Amplify branch); dedicated `<app>-pr-<n>` subdomain pending
+- [ ] Post preview URL back as commit/PR comment via SourceProvider (provider comment API pending)
 - [x] **Reaper handler** (`scheduled/reaper`): finds preview envs whose latest deploy is older than `previewTtlHours` → triggers destroy (deploy CodeBuild `MODE=destroy`) → cleans DB _(EventBridge schedule + PR-close trigger wired at AWS setup)_
 - [ ] `previews.enabled` flag gates the path; max-previews-per-project guardrail
 
@@ -28,7 +28,7 @@ the Costs Module reconciles estimated vs actual spend per project and enforces b
 ## 3. RBAC & Teams
 - [ ] Full role enforcement: `Owner / Admin / Developer / Viewer` scoped Team → Project
 - [ ] Team management UI: create team, add/remove members, assign roles
-- [ ] Project ownership by team; access checks on every route
+- [x] Project ownership by team; **access checks on every project-scoped route** (`ProjectMemberGuard` — fixes IDOR); project list/create team-scoped
 - [ ] Invite flow extended to team + role assignment
 
 ## 4. Audit Logs

@@ -1,10 +1,10 @@
 import { Body, Controller, Delete, Get, Param, Put, Query, UseGuards } from "@nestjs/common";
-import { AuthGuard } from "../auth/auth.guard.js";
+import { ProjectMemberGuard } from "../auth/auth.guard.js";
 import { EnvVarsService, type UpsertEnvVarDto } from "./env-vars.service.js";
 
 type Scope = "production" | "preview" | "development";
 
-@UseGuards(AuthGuard)
+@UseGuards(ProjectMemberGuard)
 @Controller("projects/:projectId/env")
 export class EnvVarsController {
   constructor(private readonly envVars: EnvVarsService) {}

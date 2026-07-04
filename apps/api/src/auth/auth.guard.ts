@@ -7,11 +7,25 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import type { Request } from "express";
-import { eq, teamMemberships, users, type Db } from "@techno-deployer/db";
+import { eq, projects, teamMemberships, users, type Db } from "@techno-deployer/db";
 import { DRIZZLE } from "../drizzle/drizzle.module.js";
 import { getSession } from "./session.js";
 
-type AuthedRequest = Request & { authUser?: { id: string; email: string } };
+type AuthedRequest = Request & {
+  authUser?: { id: string; email: string };
+  params: Record<string, string | undefined>;
+};
+
+/** Team ids the given email (domain user) belongs to. */
+export async function teamIdsForEmail(db: Db, email: string): Promise<string[]> {
+  const [domainUser] = await db.select().from(users).where(eq(users.email, email));
+  if (!domainUser) return [];
+  const memberships = await db
+    .select()
+    .from(teamMemberships)
+    .where(eq(teamMemberships.userId, domainUser.id));
+  return memberships.map((m) => m.teamId);
+}
 
 /** Requires a valid Better Auth session; attaches the auth user to the request. */
 @Injectable()
@@ -46,6 +60,33 @@ async function requireRoles(
     throw new ForbiddenException(`${label} only`);
   }
   req.authUser = { id: result.user.id, email: result.user.email };
+}
+
+/**
+ * Requires a session AND that the caller is a member of the target project's team. Reads the
+ * project id from `:projectId` (sub-resources) or `:id` (the project itself). Prevents IDOR /
+ * cross-tenant access to any project-scoped route.
+ */
+@Injectable()
+export class ProjectMemberGuard implements CanActivate {
+  constructor(@Inject(DRIZZLE) private readonly db: Db) {}
+
+  async canActivate(ctx: ExecutionContext): Promise<boolean> {
+    const req = ctx.switchToHttp().getRequest<AuthedRequest>();
+    const result = await getSession(req);
+    if (!result?.session) throw new UnauthorizedException();
+
+    const projectId = req.params.projectId ?? req.params.id;
+    if (!projectId) throw new ForbiddenException("Missing project id");
+
+    const teams = await teamIdsForEmail(this.db, result.user.email);
+    const [project] = await this.db.select().from(projects).where(eq(projects.id, projectId));
+    if (!project || !teams.includes(project.teamId)) {
+      throw new ForbiddenException("Not a member of this project's team");
+    }
+    req.authUser = { id: result.user.id, email: result.user.email };
+    return true;
+  }
 }
 
 /** Requires an owner/admin team role. */

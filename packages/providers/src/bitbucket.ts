@@ -1,6 +1,7 @@
 import type {
   CommitState,
   Project,
+  PullRequestEvent,
   PushEvent,
   SourceBundle,
   SourceProvider,
@@ -50,6 +51,25 @@ export class BitbucketProvider implements SourceProvider {
       repo: b.repository?.full_name ?? "",
       ref: change.name ?? "",
       commit: change.target?.hash ?? "",
+    };
+  }
+
+  parsePullRequest(headers: WebhookHeaders, body: unknown): PullRequestEvent | null {
+    const key = firstHeader(headers, "x-event-key") ?? "";
+    const opened = key === "pullrequest:created" || key === "pullrequest:updated";
+    const closed = key === "pullrequest:fulfilled" || key === "pullrequest:rejected";
+    if (!opened && !closed) return null;
+    const b = body as {
+      pullrequest?: { id?: number; source?: { branch?: { name?: string }; commit?: { hash?: string } } };
+      repository?: { full_name?: string };
+    };
+    return {
+      provider: "bitbucket",
+      repo: b.repository?.full_name ?? "",
+      number: b.pullrequest?.id ?? 0,
+      ref: b.pullrequest?.source?.branch?.name ?? "",
+      commit: b.pullrequest?.source?.commit?.hash ?? "",
+      action: opened ? "opened" : "closed",
     };
   }
 

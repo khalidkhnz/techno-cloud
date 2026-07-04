@@ -1,8 +1,8 @@
 import { Controller, Get, Param, Query, UseGuards } from "@nestjs/common";
-import { AuthGuard } from "../auth/auth.guard.js";
+import { ProjectMemberGuard } from "../auth/auth.guard.js";
 import { LogsService } from "./logs.service.js";
 
-@UseGuards(AuthGuard)
+@UseGuards(ProjectMemberGuard)
 @Controller("projects/:projectId/deployments/:deploymentId/logs")
 export class LogsController {
   constructor(private readonly logs: LogsService) {}

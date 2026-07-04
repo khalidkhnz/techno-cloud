@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Post, UseGuards } from "@nestjs/common";
-import { AuthGuard } from "../auth/auth.guard.js";
+import { ProjectMemberGuard } from "../auth/auth.guard.js";
 import { EnvironmentsService, type CreateEnvironmentDto } from "./environments.service.js";
 
-@UseGuards(AuthGuard)
+@UseGuards(ProjectMemberGuard)
 @Controller("projects/:projectId/environments")
 export class EnvironmentsController {
   constructor(private readonly environments: EnvironmentsService) {}

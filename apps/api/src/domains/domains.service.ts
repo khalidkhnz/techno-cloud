@@ -5,6 +5,17 @@ import { and, domains, eq, type Db } from "@techno-deployer/db";
 import { DRIZZLE } from "../drizzle/drizzle.module.js";
 import { PlatformConfigService } from "../platform-config/platform-config.service.js";
 
+// Strict FQDN: labels of a-z0-9(-), no wildcard, no IP literal, ≤253 chars.
+const FQDN = /^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
+
+function normalizeHostname(raw: string): string {
+  const hostname = raw.trim().toLowerCase().replace(/\.$/, "");
+  if (!FQDN.test(hostname)) {
+    throw new BadRequestException("Invalid hostname (must be a valid FQDN, no wildcards or IPs)");
+  }
+  return hostname;
+}
+
 @Injectable()
 export class DomainsService {
   constructor(
@@ -24,8 +35,9 @@ export class DomainsService {
   }
 
   /** Add a domain; returns the TXT record the user must create to verify ownership. */
-  async add(projectId: string, hostname: string) {
+  async add(projectId: string, rawHostname: string) {
     await this.assertEnabled();
+    const hostname = normalizeHostname(rawHostname);
     const verifyToken = `td-verify=${randomUUID()}`;
     const [row] = await this.db
       .insert(domains)

@@ -4,7 +4,14 @@
  */
 
 import type { SourceProviderKind } from "./config.js";
-import type { CommitState, Project, PushEvent, SourceBundle, SourceRef } from "./domain.js";
+import type {
+  CommitState,
+  Project,
+  PullRequestEvent,
+  PushEvent,
+  SourceBundle,
+  SourceRef,
+} from "./domain.js";
 
 export type WebhookHeaders = Record<string, string | string[] | undefined>;
 
@@ -23,6 +30,8 @@ export interface SourceProvider {
   verifySignature(headers: WebhookHeaders, rawBody: Uint8Array, secret: string): boolean;
   /** Parse an incoming webhook into a normalized push event (null if not a push we deploy). */
   parseWebhook(headers: WebhookHeaders, body: unknown): PushEvent | null;
+  /** Parse a pull-request event for preview deployments (null if not a PR open/close). */
+  parsePullRequest(headers: WebhookHeaders, body: unknown): PullRequestEvent | null;
   /** Build an authenticated clone URL (token optional for public repos). */
   cloneUrl(repo: string, token?: string): string;
 }

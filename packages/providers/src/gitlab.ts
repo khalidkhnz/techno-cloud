@@ -1,6 +1,7 @@
 import type {
   CommitState,
   Project,
+  PullRequestEvent,
   PushEvent,
   SourceBundle,
   SourceProvider,
@@ -47,6 +48,32 @@ export class GitlabProvider implements SourceProvider {
       repo: b.project?.path_with_namespace ?? "",
       ref: b.ref.slice("refs/heads/".length),
       commit: b.checkout_sha ?? "",
+    };
+  }
+
+  parsePullRequest(_headers: WebhookHeaders, body: unknown): PullRequestEvent | null {
+    const b = body as {
+      object_kind?: string;
+      object_attributes?: {
+        action?: string;
+        iid?: number;
+        source_branch?: string;
+        last_commit?: { id?: string };
+      };
+      project?: { path_with_namespace?: string };
+    };
+    if (b.object_kind !== "merge_request") return null;
+    const action = b.object_attributes?.action;
+    const opened = action === "open" || action === "reopen" || action === "update";
+    const closed = action === "close" || action === "merge";
+    if (!opened && !closed) return null;
+    return {
+      provider: "gitlab",
+      repo: b.project?.path_with_namespace ?? "",
+      number: b.object_attributes?.iid ?? 0,
+      ref: b.object_attributes?.source_branch ?? "",
+      commit: b.object_attributes?.last_commit?.id ?? "",
+      action: opened ? "opened" : "closed",
     };
   }
 

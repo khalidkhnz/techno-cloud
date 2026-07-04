@@ -1,6 +1,7 @@
 import type {
   CommitState,
   Project,
+  PullRequestEvent,
   PushEvent,
   SourceBundle,
   SourceProvider,
@@ -46,6 +47,27 @@ export class GithubProvider implements SourceProvider {
       repo: b.repository?.full_name ?? "",
       ref: b.ref.slice("refs/heads/".length),
       commit: b.after ?? "",
+    };
+  }
+
+  parsePullRequest(headers: WebhookHeaders, body: unknown): PullRequestEvent | null {
+    if (firstHeader(headers, "x-github-event") !== "pull_request") return null;
+    const b = body as {
+      action?: string;
+      number?: number;
+      pull_request?: { head?: { ref?: string; sha?: string } };
+      repository?: { full_name?: string };
+    };
+    const opened = ["opened", "reopened", "synchronize"].includes(b.action ?? "");
+    const closed = b.action === "closed";
+    if (!opened && !closed) return null;
+    return {
+      provider: "github",
+      repo: b.repository?.full_name ?? "",
+      number: b.number ?? 0,
+      ref: b.pull_request?.head?.ref ?? "",
+      commit: b.pull_request?.head?.sha ?? "",
+      action: opened ? "opened" : "closed",
     };
   }
 

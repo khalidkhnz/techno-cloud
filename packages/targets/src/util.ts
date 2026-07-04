@@ -6,7 +6,7 @@ export const boundaryArn = (): string => process.env.APP_BOUNDARY_ARN ?? "";
 
 /** Stable per-app resource name (matches the `${prefix}-app-*` pattern the CodeBuild role manages). */
 export function appName(ctx: DeployContext): string {
-  return `${appPrefix()}-app-${ctx.project.id.slice(0, 8)}-${ctx.environment}`;
+  return `${appPrefix()}-app-${ctx.project.id.slice(0, 8)}-${ctx.environmentName}`;
 }
 
 /** Cost-attribution tags applied to deployed resources (Cost Explorer groups on these). */
@@ -27,7 +27,7 @@ export async function runDeploy(
   opts?: DeployOptions,
 ): Promise<DeployResult> {
   const result = await runStack({
-    stackName: stackName(ctx.project.id, ctx.environment),
+    stackName: stackName(ctx.project.id, ctx.environmentName),
     program,
     preview: opts?.preview,
   });

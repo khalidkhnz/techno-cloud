@@ -20,7 +20,11 @@ export const handler: SQSHandler = async (event) => {
     await db.update(deployments).set({ state: "building" }).where(eq(deployments.id, job.deploymentId));
 
     const [project] = await db.select().from(projects).where(eq(projects.id, job.projectId));
-    if (!project) {
+    const [deployment] = await db
+      .select()
+      .from(deployments)
+      .where(eq(deployments.id, job.deploymentId));
+    if (!project || !deployment) {
       await db
         .update(deployments)
         .set({ state: "failed" })
@@ -42,7 +46,7 @@ export const handler: SQSHandler = async (event) => {
       PROJECT_ID: job.projectId,
       TARGET: project.target,
       CLONE_URL: cloneUrl,
-      SOURCE_REF: source.ref ?? "main",
+      SOURCE_REF: deployment.ref ?? source.ref ?? "main",
       ...(bc.installCommand ? { NIXPACKS_INSTALL_CMD: bc.installCommand } : {}),
       ...(bc.buildCommand ? { NIXPACKS_BUILD_CMD: bc.buildCommand } : {}),
       ...(bc.startCommand ? { NIXPACKS_START_CMD: bc.startCommand } : {}),

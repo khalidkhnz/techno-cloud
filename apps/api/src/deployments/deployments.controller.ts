@@ -1,8 +1,8 @@
 import { Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
-import { AuthGuard } from "../auth/auth.guard.js";
+import { ProjectMemberGuard } from "../auth/auth.guard.js";
 import { DeploymentsService } from "./deployments.service.js";
 
-@UseGuards(AuthGuard)
+@UseGuards(ProjectMemberGuard)
 @Controller("projects/:projectId/deployments")
 export class DeploymentsController {
   constructor(private readonly deployments: DeploymentsService) {}

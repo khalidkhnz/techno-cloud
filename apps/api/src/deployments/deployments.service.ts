@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { and, deployments, environments, eq, projects, type Db } from "@techno-deployer/db";
-import { enqueueBuild, enqueueDeploy } from "@techno-deployer/aws";
+import { and, deployments, desc, environments, eq, projects, type Db } from "@techno-deployer/db";
+import { enqueueBuild, enqueueDeploy, startBuild } from "@techno-deployer/aws";
 import { env } from "@techno-deployer/env";
 import { DRIZZLE } from "../drizzle/drizzle.module.js";
 
@@ -75,6 +75,56 @@ export class DeploymentsService {
 
     await enqueueDeploy({ deploymentId: deployment.id, projectId, imageUri: target.imageUri });
     return deployment;
+  }
+
+  /** Create/refresh a per-PR preview deployment (builds the PR branch). */
+  async createPreview(projectId: string, prNumber: number, ref: string, commit?: string) {
+    const name = `pr-${prNumber}`;
+    let [environment] = await this.db
+      .select()
+      .from(environments)
+      .where(and(eq(environments.projectId, projectId), eq(environments.name, name)));
+    if (!environment) {
+      [environment] = await this.db
+        .insert(environments)
+        .values({ projectId, kind: "preview", name })
+        .returning();
+    }
+    if (!environment) throw new Error("Failed to create preview environment");
+
+    const [deployment] = await this.db
+      .insert(deployments)
+      .values({ projectId, environmentId: environment.id, state: "queued", ref, commit: commit ?? null })
+      .returning();
+    if (!deployment) throw new Error("Failed to create preview deployment");
+
+    await enqueueBuild({ deploymentId: deployment.id, projectId });
+    return deployment;
+  }
+
+  /** Tear down a PR preview: trigger destroy (CodeBuild MODE=destroy) + remove the environment. */
+  async destroyPreview(projectId: string, prNumber: number) {
+    const name = `pr-${prNumber}`;
+    const [environment] = await this.db
+      .select()
+      .from(environments)
+      .where(and(eq(environments.projectId, projectId), eq(environments.name, name)));
+    if (!environment) return { ok: false as const };
+
+    const [latest] = await this.db
+      .select()
+      .from(deployments)
+      .where(eq(deployments.environmentId, environment.id))
+      .orderBy(desc(deployments.createdAt))
+      .limit(1);
+    if (latest) {
+      await startBuild(process.env.DEPLOY_PROJECT_NAME ?? "", {
+        DEPLOYMENT_ID: latest.id,
+        MODE: "destroy",
+      });
+    }
+    await this.db.delete(environments).where(eq(environments.id, environment.id));
+    return { ok: true as const };
   }
 
   private async findOrCreateProductionEnv(projectId: string): Promise<string> {

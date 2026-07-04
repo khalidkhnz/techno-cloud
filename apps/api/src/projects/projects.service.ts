@@ -1,9 +1,16 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { count, eq, type Db, projects } from "@techno-deployer/db";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { count, eq, inArray, type Db, projects } from "@techno-deployer/db";
 import { isTargetEnabled } from "@techno-deployer/core";
 import type { BuildConfig, DeployTargetKind } from "@techno-deployer/core";
 import type { SourceRef } from "@techno-deployer/core";
 import { DRIZZLE } from "../drizzle/drizzle.module.js";
+import { teamIdsForEmail } from "../auth/auth.guard.js";
 import { PlatformConfigService } from "../platform-config/platform-config.service.js";
 
 export interface CreateProjectDto {
@@ -22,14 +29,18 @@ export class ProjectsService {
     private readonly platformConfig: PlatformConfigService,
   ) {}
 
-  async list(teamId?: string) {
-    if (teamId) {
-      return this.db.select().from(projects).where(eq(projects.teamId, teamId));
-    }
-    return this.db.select().from(projects);
+  /** Lists only projects owned by teams the caller belongs to. */
+  async list(email: string) {
+    const teams = await teamIdsForEmail(this.db, email);
+    if (teams.length === 0) return [];
+    return this.db.select().from(projects).where(inArray(projects.teamId, teams));
   }
 
-  async create(dto: CreateProjectDto) {
+  async create(email: string, dto: CreateProjectDto) {
+    const teams = await teamIdsForEmail(this.db, email);
+    if (!teams.includes(dto.teamId)) {
+      throw new ForbiddenException("Not a member of this team");
+    }
     const target = dto.target ?? "lambda";
     const config = await this.platformConfig.get();
     if (!isTargetEnabled(config, target)) {

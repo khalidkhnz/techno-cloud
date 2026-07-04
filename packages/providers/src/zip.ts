@@ -1,5 +1,6 @@
 import type {
   Project,
+  PullRequestEvent,
   PushEvent,
   SourceBundle,
   SourceProvider,
@@ -29,6 +30,10 @@ export class ZipProvider implements SourceProvider {
   }
 
   parseWebhook(_headers: WebhookHeaders, _body: unknown): PushEvent | null {
+    return null; // zip uploads are not webhook-driven
+  }
+
+  parsePullRequest(_headers: WebhookHeaders, _body: unknown): PullRequestEvent | null {
     return null; // zip uploads are not webhook-driven
   }
 

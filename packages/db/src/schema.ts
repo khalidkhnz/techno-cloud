@@ -147,6 +147,7 @@ export const deployments = pgTable("deployments", {
   projectId: uuid("project_id").references(() => projects.id).notNull(),
   environmentId: uuid("environment_id").references(() => environments.id).notNull(),
   commit: text("commit"),
+  ref: text("ref"), // branch to build (previews build the PR branch, not the project default)
   state: deploymentStateEnum("state").notNull().default("queued"),
   buildId: text("build_id"),
   // Immutable built artifact (ECR image URI / static version) — enables rebuild-free rollback.
@@ -173,7 +174,7 @@ export const envVars = pgTable("env_vars", {
 export const domains = pgTable("domains", {
   id: uuid("id").defaultRandom().primaryKey(),
   projectId: uuid("project_id").references(() => projects.id).notNull(),
-  hostname: text("hostname").notNull().unique(),
+  hostname: text("hostname").notNull(), // uniqueness enforced by DNS verification, not a global constraint
   verifyToken: text("verify_token").notNull(),
   verified: boolean("verified").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),

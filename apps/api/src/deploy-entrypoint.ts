@@ -37,10 +37,11 @@ async function main(): Promise<void> {
     .from(environments)
     .where(eq(environments.id, deployment.environmentId));
   const scope = (environment?.kind ?? "production") as EnvironmentKind;
+  const environmentName = environment?.name ?? scope;
 
   const target = createTargetRegistry().get(project.target as DeployTargetKind);
   const lockId = `${project.id}:${deployment.environmentId}`;
-  const stack = `${project.id}-${scope}`;
+  const stack = `${project.id}-${environmentName}`;
 
   // Destroy mode (used by the preview reaper): tear the stack down and mark destroyed.
   if (process.env.MODE === "destroy") {
@@ -67,6 +68,7 @@ async function main(): Promise<void> {
       target: project.target as DeployTargetKind,
     },
     environment: scope,
+    environmentName,
     deploymentId,
     artifact: { type: target.artifactType, ref: process.env.IMAGE_URI ?? deployment.imageUri ?? "" },
     env,

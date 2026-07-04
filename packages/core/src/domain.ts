@@ -46,6 +46,8 @@ export interface SourceBundle {
 export interface DeployContext {
   project: Project;
   environment: EnvironmentKind;
+  /** Concrete environment identity (e.g. "production", "pr-5") — used for per-env stack naming. */
+  environmentName: string;
   deploymentId: string;
   /** Built artifact reference (ECR image URI, S3 static prefix, or repo for Amplify). */
   artifact: { type: "image" | "zip" | "static" | "repo"; ref: string };
@@ -88,4 +90,14 @@ export interface PushEvent {
   repo: string; // owner/name (GitHub/Bitbucket) or group/project (GitLab)
   ref: string; // branch name
   commit: string; // commit sha
+}
+
+/** Normalized pull-request event (for preview deployments). */
+export interface PullRequestEvent {
+  provider: SourceProviderKind;
+  repo: string;
+  number: number;
+  ref: string; // head branch
+  commit: string; // head sha
+  action: "opened" | "closed";
 }
