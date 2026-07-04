@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { api, type AuditLog } from "../../../lib/api";
-import { useSession } from "../../../lib/auth-client";
+import { api, type AuditLog } from "@/lib/api";
+import { useSession } from "@/lib/auth-client";
 
 export default function AuditPage() {
   const router = useRouter();

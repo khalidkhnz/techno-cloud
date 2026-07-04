@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { api, type Budget, type CostSnapshot, type FreeTierMeter } from "../../lib/api";
-import { useSession } from "../../lib/auth-client";
+import { api, type Budget, type CostSnapshot, type FreeTierMeter } from "@/lib/api";
+import { useSession } from "@/lib/auth-client";
 
 const STATUS_COLOR: Record<FreeTierMeter["status"], string> = {
   ok: "#2e8b57",

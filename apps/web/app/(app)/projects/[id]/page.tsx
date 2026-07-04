@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { api, type Deployment, type Domain, type EnvVar, type Environment, type Project } from "../../../lib/api";
+import { api, type Deployment, type Domain, type EnvVar, type Environment, type Project } from "@/lib/api";
 
 const STATE_COLOR: Record<Deployment["state"], string> = {
   queued: "#888",

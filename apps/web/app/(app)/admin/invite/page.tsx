@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { api } from "../../../lib/api";
-import { useSession } from "../../../lib/auth-client";
+import { api } from "@/lib/api";
+import { useSession } from "@/lib/auth-client";
 
 const ROLES = ["owner", "admin", "developer", "viewer"];
 
