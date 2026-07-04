@@ -1,125 +1,168 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
-import { useSession } from "@/lib/auth-client";
+import { useState } from "react";
+import { Plus, Settings2, Trash2, Users } from "lucide-react";
+import { PageHeader } from "@/components/app/page-header";
+import { EmptyState } from "@/components/app/empty-state";
+import { FadeIn } from "@/components/motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  useAddMember,
+  useCreateTeam,
+  useMembers,
+  useRemoveMember,
+  useTeams,
+  useUpdateMemberRole,
+} from "@/lib/query/teams";
 
-type Member = { userId: string; role: string; email: string; name: string | null };
 const ROLES = ["owner", "admin", "developer", "viewer"];
 
 export default function TeamsPage() {
-  const router = useRouter();
-  const { data: session, isPending } = useSession();
-  const [teams, setTeams] = useState<{ id: string; name: string }[]>([]);
+  const { data: teams } = useTeams();
   const [selected, setSelected] = useState<string | null>(null);
-  const [members, setMembers] = useState<Member[]>([]);
   const [teamName, setTeamName] = useState("");
-  const [memberEmail, setMemberEmail] = useState("");
-  const [memberRole, setMemberRole] = useState("developer");
-  const [error, setError] = useState<string | null>(null);
-
-  const loadTeams = () => api.listTeams().then(setTeams).catch((e) => setError(String(e)));
-  const loadMembers = (t: string) => api.listMembers(t).then(setMembers).catch(() => setMembers([]));
-
-  useEffect(() => {
-    if (!isPending && !session) {
-      router.replace("/login");
-      return;
-    }
-    if (session) loadTeams();
-  }, [isPending, session, router]);
-
-  useEffect(() => {
-    if (selected) loadMembers(selected);
-  }, [selected]);
-
-  if (isPending || !session) return null;
+  const createTeam = useCreateTeam();
 
   return (
-    <main className="container-app">
-      <Link href="/projects" className="text-sm">
-        ← Projects
-      </Link>
-      <h1 className="mt-2">Teams</h1>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+    <FadeIn>
+      <PageHeader title="Teams" description="Membership and roles across the platform." />
 
-      <div className="mt-4 grid gap-6 sm:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <div>
-          <h2>Your teams</h2>
-          <ul className="mt-2 divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
-            {teams.map((t) => (
-              <li key={t.id} className="flex items-center justify-between px-4 py-2 text-sm">
-                <span>{t.name}</span>
-                <button className="btn btn-secondary" onClick={() => setSelected(t.id)}>
-                  manage
-                </button>
-              </li>
-            ))}
-            {teams.length === 0 && <li className="muted px-4 py-2">No teams.</li>}
-          </ul>
+          <h2 className="mb-3 text-sm font-medium text-muted-foreground">Your teams</h2>
+          <div className="glass overflow-hidden rounded-xl">
+            <ul className="divide-y divide-white/[0.06]">
+              {(teams ?? []).map((t) => (
+                <li key={t.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
+                  <span className="font-medium text-foreground">{t.name}</span>
+                  <Button
+                    variant={selected === t.id ? "secondary" : "ghost"}
+                    size="sm"
+                    onClick={() => setSelected(t.id)}
+                  >
+                    <Settings2 className="h-3.5 w-3.5" /> Manage
+                  </Button>
+                </li>
+              ))}
+              {(!teams || teams.length === 0) && (
+                <li className="px-4 py-2.5 text-sm text-muted-foreground">No teams.</li>
+              )}
+            </ul>
+          </div>
           <form
-            className="mt-2 flex gap-2"
+            className="mt-3 flex gap-2"
             onSubmit={(e) => {
               e.preventDefault();
-              api.createTeam(teamName).then(() => {
-                setTeamName("");
-                loadTeams();
-              });
+              createTeam.mutate(teamName, { onSuccess: () => setTeamName("") });
             }}
           >
-            <input className="input" placeholder="new team name" value={teamName} onChange={(e) => setTeamName(e.target.value)} required />
-            <button className="btn" type="submit">
-              Create
-            </button>
+            <Input
+              placeholder="new team name"
+              value={teamName}
+              onChange={(e) => setTeamName(e.target.value)}
+              required
+            />
+            <Button type="submit" size="sm" disabled={createTeam.isPending}>
+              <Plus className="h-3.5 w-3.5" /> Create
+            </Button>
           </form>
         </div>
 
-        {selected && (
-          <div>
-            <h2>Members</h2>
-            <ul className="mt-2 divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
-              {members.map((m) => (
-                <li key={m.userId} className="flex items-center justify-between px-4 py-2 text-sm">
-                  <span>
-                    {m.email} <span className="badge bg-neutral-100 text-neutral-600">{m.role}</span>
-                  </span>
-                  <button
-                    className="btn btn-secondary"
-                    onClick={() => api.removeMember(selected, m.userId).then(() => loadMembers(selected))}
-                  >
-                    remove
-                  </button>
-                </li>
-              ))}
-              {members.length === 0 && <li className="muted px-4 py-2">No members.</li>}
-            </ul>
-            <form
-              className="mt-2 flex flex-wrap gap-2"
-              onSubmit={(e) => {
-                e.preventDefault();
-                api.addMember(selected, memberEmail, memberRole).then(() => {
-                  setMemberEmail("");
-                  loadMembers(selected);
-                });
-              }}
-            >
-              <input className="input max-w-[14rem]" type="email" placeholder="member email" value={memberEmail} onChange={(e) => setMemberEmail(e.target.value)} required />
-              <select className="input max-w-[8rem]" value={memberRole} onChange={(e) => setMemberRole(e.target.value)}>
-                {ROLES.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </select>
-              <button className="btn" type="submit">
-                Add
-              </button>
-            </form>
-          </div>
+        {selected ? (
+          <MembersPanel teamId={selected} />
+        ) : (
+          <EmptyState icon={Users} title="Select a team" description="Manage members and their roles." />
         )}
       </div>
-    </main>
+    </FadeIn>
+  );
+}
+
+function MembersPanel({ teamId }: { teamId: string }) {
+  const { data: members } = useMembers(teamId);
+  const add = useAddMember(teamId);
+  const remove = useRemoveMember(teamId);
+  const updateRole = useUpdateMemberRole(teamId);
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("developer");
+
+  return (
+    <div>
+      <h2 className="mb-3 text-sm font-medium text-muted-foreground">Members</h2>
+      <div className="glass overflow-hidden rounded-xl">
+        <ul className="divide-y divide-white/[0.06]">
+          {(members ?? []).map((m) => (
+            <li key={m.userId} className="flex items-center gap-2 px-4 py-2.5 text-sm">
+              <span className="min-w-0 flex-1 truncate text-foreground">{m.email}</span>
+              <Select
+                value={m.role}
+                onValueChange={(r) => updateRole.mutate({ userId: m.userId, role: r })}
+              >
+                <SelectTrigger className="h-7 w-[7.5rem] text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ROLES.map((r) => (
+                    <SelectItem key={r} value={r}>
+                      {r}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-zinc-500 hover:text-red-300"
+                onClick={() => remove.mutate(m.userId)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </li>
+          ))}
+          {(!members || members.length === 0) && (
+            <li className="px-4 py-2.5 text-sm text-muted-foreground">No members.</li>
+          )}
+        </ul>
+      </div>
+      <form
+        className="mt-3 flex flex-wrap gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          add.mutate({ email, role }, { onSuccess: () => setEmail("") });
+        }}
+      >
+        <Input
+          className="max-w-[14rem]"
+          type="email"
+          placeholder="member email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <Select value={role} onValueChange={setRole}>
+          <SelectTrigger className="max-w-[8rem]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {ROLES.map((r) => (
+              <SelectItem key={r} value={r}>
+                {r}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button type="submit" size="sm" disabled={add.isPending}>
+          <Plus className="h-3.5 w-3.5" /> Add
+        </Button>
+      </form>
+    </div>
   );
 }
