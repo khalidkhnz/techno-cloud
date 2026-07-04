@@ -66,6 +66,20 @@ export const api = {
   getPlatformConfig: () => req<PlatformConfig>("/platform-config"),
   getMeters: () => req<FreeTierMeter[]>("/meters"),
   getAudit: () => req<AuditLog[]>("/audit"),
+  listTeams: () => req<{ id: string; name: string }[]>("/teams"),
+  createTeam: (name: string) =>
+    req<{ id: string; name: string }>("/teams", { method: "POST", body: JSON.stringify({ name }) }),
+  listMembers: (teamId: string) =>
+    req<{ userId: string; role: string; email: string; name: string | null }[]>(
+      `/teams/${teamId}/members`,
+    ),
+  addMember: (teamId: string, email: string, role: string) =>
+    req<unknown>(`/teams/${teamId}/members`, {
+      method: "POST",
+      body: JSON.stringify({ email, role }),
+    }),
+  removeMember: (teamId: string, userId: string) =>
+    req<{ ok: boolean }>(`/teams/${teamId}/members/${userId}`, { method: "DELETE" }),
   listEnvironments: (projectId: string) =>
     req<Environment[]>(`/projects/${projectId}/environments`),
   createEnvironment: (projectId: string, body: { kind: string; name: string }) =>

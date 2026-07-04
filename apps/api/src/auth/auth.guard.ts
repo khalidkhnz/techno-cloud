@@ -7,7 +7,7 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import type { Request } from "express";
-import { eq, projects, teamMemberships, users, type Db } from "@techno-deployer/db";
+import { and, eq, projects, teamMemberships, users, type Db } from "@techno-deployer/db";
 import { DRIZZLE } from "../drizzle/drizzle.module.js";
 import { getSession } from "./session.js";
 
@@ -108,6 +108,34 @@ export class OwnerGuard implements CanActivate {
   constructor(@Inject(DRIZZLE) private readonly db: Db) {}
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     await requireRoles(this.db, ctx.switchToHttp().getRequest<AuthedRequest>(), ["owner"], "Owner");
+    return true;
+  }
+}
+
+/** Requires the caller to be an owner/admin of the target team (`:teamId`). */
+@Injectable()
+export class TeamAdminGuard implements CanActivate {
+  constructor(@Inject(DRIZZLE) private readonly db: Db) {}
+
+  async canActivate(ctx: ExecutionContext): Promise<boolean> {
+    const req = ctx.switchToHttp().getRequest<AuthedRequest>();
+    const result = await getSession(req);
+    if (!result?.session) throw new UnauthorizedException();
+
+    const teamId = req.params.teamId;
+    if (!teamId) throw new ForbiddenException("Missing team id");
+
+    const [domainUser] = await this.db.select().from(users).where(eq(users.email, result.user.email));
+    if (!domainUser) throw new ForbiddenException("No domain account");
+
+    const memberships = await this.db
+      .select()
+      .from(teamMemberships)
+      .where(and(eq(teamMemberships.userId, domainUser.id), eq(teamMemberships.teamId, teamId)));
+    if (!memberships.some((m) => m.role === "owner" || m.role === "admin")) {
+      throw new ForbiddenException("Team admin only");
+    }
+    req.authUser = { id: result.user.id, email: result.user.email };
     return true;
   }
 }

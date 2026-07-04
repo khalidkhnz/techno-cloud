@@ -82,6 +82,7 @@ export default function ProjectsPage() {
         <h1>Projects</h1>
         <span className="flex items-center gap-4 text-sm">
           <Link href="/costs">Costs</Link>
+          <Link href="/admin/teams">Teams</Link>
           <Link href="/admin/audit">Audit</Link>
           <Link href="/admin/invite">Invite user</Link>
           <button className="btn btn-secondary" onClick={() => signOut().then(() => router.replace("/login"))}>

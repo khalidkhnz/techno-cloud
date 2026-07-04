@@ -26,10 +26,10 @@ the Costs Module reconciles estimated vs actual spend per project and enforces b
 - [x] `customDomains.enabled` flag gate (add rejected when disabled)
 
 ## 3. RBAC & Teams
-- [ ] Full role enforcement: `Owner / Admin / Developer / Viewer` scoped Team → Project
-- [ ] Team management UI: create team, add/remove members, assign roles
+- [~] Role enforcement: Owner/Admin/TeamAdmin/ProjectMember guards ✓; Developer-vs-Viewer write/read distinction pending
+- [x] Team management: create team (caller→owner), list, members (add by email/invite, remove, role update) — API + `/admin/teams` UI, team-admin gated
 - [x] Project ownership by team; **access checks on every project-scoped route** (`ProjectMemberGuard` — fixes IDOR); project list/create team-scoped
-- [ ] Invite flow extended to team + role assignment
+- [x] Invite flow extended to team + role assignment (addMember emails an invite carrying the role)
 
 ## 4. Audit Logs
 - [x] `AuditLog` writes: **global interceptor** auto-audits every mutating request (deploy, rollback, config update, env/secret changes, invite, environment create/delete) with actor resolved from session

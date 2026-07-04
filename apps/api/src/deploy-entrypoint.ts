@@ -50,7 +50,7 @@ async function main(): Promise<void> {
     return;
   }
 
-  const env = await resolveEnv(project.id, scope);
+  const appEnv = await resolveEnv(project.id, scope);
   // Attach the first verified custom domain (production only).
   const [verifiedDomain] =
     scope === "production"
@@ -71,7 +71,7 @@ async function main(): Promise<void> {
     environmentName,
     deploymentId,
     artifact: { type: target.artifactType, ref: process.env.IMAGE_URI ?? deployment.imageUri ?? "" },
-    env,
+    env: appEnv,
     ...(verifiedDomain ? { customDomain: verifiedDomain.hostname } : {}),
   };
 

@@ -13,6 +13,7 @@ import { MetersModule } from "./meters/meters.module.js";
 import { EnvironmentsModule } from "./environments/environments.module.js";
 import { LogsModule } from "./logs/logs.module.js";
 import { DomainsModule } from "./domains/domains.module.js";
+import { TeamsModule } from "./teams/teams.module.js";
 import { PlatformConfigModule } from "./platform-config/platform-config.module.js";
 
 /**
@@ -34,6 +35,7 @@ import { PlatformConfigModule } from "./platform-config/platform-config.module.j
     EnvironmentsModule,
     LogsModule,
     DomainsModule,
+    TeamsModule,
     PlatformConfigModule,
   ],
   controllers: [HealthController],
