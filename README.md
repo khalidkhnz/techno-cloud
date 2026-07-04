@@ -48,6 +48,26 @@ AWS always-free tiers so the platform itself stays near-zero cost. Internal tool
 
 See [`COST_BREAKDOWN.md`](./COST_BREAKDOWN.md) for detail and caveats.
 
+## Getting started (local)
+
+```bash
+pnpm install
+cp .env.example .env          # set DATABASE_URL (Neon pooled) + ADMIN_EMAIL
+pnpm --filter @techno-deployer/db db:migrate   # apply migrations 0000–0003
+ADMIN_EMAIL=you@company.com pnpm --filter @techno-deployer/db db:seed   # default team + owner invite
+pnpm build && pnpm test       # 18 unit tests
+pnpm --filter @techno-deployer/api dev         # API on :3001
+pnpm --filter @techno-deployer/web dev         # dashboard on :3000
+```
+
+**Bootstrap:** the platform is invite-only. `db:seed` creates a default team + an **owner invite**
+for `ADMIN_EMAIL`. Sign in at `/login` with that email — the OTP is emailed (logged to the API
+console in dev when SMTP is unset). On first sign-in you become owner of the Default team and can
+invite others from **Invite user**.
+
 ## Status
 
-Planning complete. Monorepo scaffolding in progress (Phase 1).
+Phases 1–2 substantially implemented (control plane, auth + RBAC, deploy-loop plumbing, env/secrets,
+rollback, cost estimation + free-tier meters, feature flags, providers/webhooks, environments).
+Remaining work needing live AWS: real driver `deploy()` Pulumi programs, CodeBuild buildspec, the
+build→deploy bridge, usage poller, alert scheduler, and log streaming.

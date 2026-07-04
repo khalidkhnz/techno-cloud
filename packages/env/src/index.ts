@@ -49,6 +49,7 @@ export const env = createEnv({
 
     // Platform
     BASE_DOMAIN: z.string().default("deploy.internal"),
+    ADMIN_EMAIL: z.string().email().optional(), // seeded as the first owner (invite-only bootstrap)
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,

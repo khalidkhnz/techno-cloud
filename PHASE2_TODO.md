@@ -58,6 +58,7 @@ and the Costs Module shows per-app estimates + free-tier meters with alerts.
 - [x] Cost warning on always-on targets (apprunner/ecs-fargate/ec2) in the create form
 
 ## 9. Verify
+- [x] Unit tests (Vitest): framework detection, cost estimators, meter status, provider webhook parsing + HMAC signature verify, config flags — **18 passing** (`pnpm test`)
 - [ ] Matrix: {github, gitlab, bitbucket, zip} × {lambda, amplify, static-cdn, apprunner, ecs-fargate}
 - [ ] Env/secret injection verified per target
 - [ ] Rollback verified on lambda + static-cdn + amplify

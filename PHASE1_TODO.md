@@ -30,7 +30,7 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 ## 2. Database (`packages/db`, Drizzle + Neon Postgres)
 - [x] Connect via Neon **pooled endpoint** (`-pooler`) using `@neondatabase/serverless` (URL from validated env)
 - [x] Schema: `User, Team, TeamMembership, Invite, Project, Environment, Deployment, AuditLog, PlatformConfig` (+ `FreeTierMeter` for Costs)
-- [ ] Migrations + seed (one admin, default PlatformConfig)
+- [x] Migrations (0000–0003) + **seed** (default team + PlatformConfig + owner invite from `ADMIN_EMAIL`) — `db:seed`
 - [ ] Verify connection pooling works from Lambda (no connection exhaustion)
 
 ## 3. Auth (Better Auth + Nodemailer)
