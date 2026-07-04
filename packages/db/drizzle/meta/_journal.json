@@ -8,6 +8,13 @@
       "when": 1783172446486,
       "tag": "0000_glamorous_vermin",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783181947015,
+      "tag": "0001_pale_juggernaut",
+      "breakpoints": true
     }
   ]
 }

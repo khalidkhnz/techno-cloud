@@ -32,6 +32,7 @@ export const env = createEnv({
     // Auth (Better Auth)
     BETTER_AUTH_SECRET: z.string().min(1).optional(),
     BETTER_AUTH_URL: z.string().url().optional(),
+    APP_ORIGIN: z.string().url().optional(),
 
     // Email (Nodemailer / SES)
     SMTP_HOST: z.string().optional(),

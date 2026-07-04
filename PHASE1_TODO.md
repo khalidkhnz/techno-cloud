@@ -34,11 +34,11 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 - [ ] Verify connection pooling works from Lambda (no connection exhaustion)
 
 ## 3. Auth (Better Auth + Nodemailer)
-- [ ] Better Auth in `apps/api` (email/password + OTP plugin)
-- [ ] Nodemailer transport (SMTP dev, SES-ready)
-- [ ] Invite flow: admin invite → email link → signup → OTP verify
-- [ ] Session middleware + guards; enforce Admin for invites
-- [ ] RBAC enum stub (Owner/Admin/Developer/Viewer)
+- [x] Better Auth in `apps/api` (email/password + **emailOTP** plugin), Drizzle adapter, auth tables (migration 0001), handler mounted at `/api/auth/*` (raw-body before JSON parser)
+- [x] Nodemailer transport (SMTP with dev-logging fallback, SES-ready)
+- [~] Invite flow: admin invite endpoint + email link ✓, accept ✓, **invite-only enforced** via Better Auth `user.create.before` hook; signup/OTP via Better Auth endpoints _(UI pending)_
+- [ ] Session middleware + guards; enforce Admin for invites _(controllers marked TODO(phase3) RBAC)_
+- [x] RBAC enum stub (Owner/Admin/Developer/Viewer) — `roleEnum` in schema + `core`
 
 ## 4. Control Plane API (`apps/api`, NestJS on Lambda)
 - [x] Bootstrap NestJS + **Lambda arm64 handler** (serverless-express adapter, cached per container); health route _(Function URL wiring in §10)_
