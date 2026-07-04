@@ -172,6 +172,7 @@ export interface DetectResult {
   inspected: boolean;
   note?: string;
   files: string[];
+  dockerfile: string | null;
 }
 
 export interface MetaTarget {

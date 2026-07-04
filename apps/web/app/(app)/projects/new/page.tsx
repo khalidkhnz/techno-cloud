@@ -7,7 +7,9 @@ import { AlertTriangle, ArrowLeft, KeyRound, Leaf, ScanSearch, Sparkles } from "
 import { PageHeader } from "@/components/app/page-header";
 import { TargetBadge } from "@/components/app/target-badge";
 import { BuildPlanView } from "@/components/app/build-plan";
+import { DockerfilePreview } from "@/components/app/dockerfile-preview";
 import { FadeIn } from "@/components/motion";
+import { generateDockerfile, maskSecrets } from "@/lib/dockerfile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -62,6 +64,24 @@ export default function NewProjectPage() {
   const est = estimates?.[target];
   const isZip = provider === "zip";
 
+  // Live Dockerfile / build preview — the repo's own Dockerfile if present, else a generated one
+  // that reflects the detected framework + the build/start commands as they're typed. Secrets masked.
+  const repoDockerfile = detection?.dockerfile ?? null;
+  const rawPreview =
+    repoDockerfile ??
+    generateDockerfile({
+      framework: detection?.detection.framework ?? "unknown",
+      buildStrategy: detection?.detection.buildStrategy ?? "nixpacks",
+      buildCommand: buildCmd,
+      startCommand: startCmd,
+    });
+  const previewContent = maskSecrets(rawPreview, [token].filter(Boolean));
+  const previewSubtitle = repoDockerfile
+    ? "From your repository — the build uses this as-is."
+    : detection?.detection.buildStrategy === "static"
+      ? "Generated preview — static export (build output → S3 + CloudFront)."
+      : "Generated preview — no Dockerfile in repo; built with Nixpacks. Edit build/start to update.";
+
   function submit(e: React.FormEvent) {
     e.preventDefault();
     const buildConfig =
@@ -85,7 +105,7 @@ export default function NewProjectPage() {
   }
 
   return (
-    <FadeIn className="mx-auto max-w-2xl">
+    <FadeIn className="mx-auto max-w-5xl">
       <Link
         href="/projects"
         className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
@@ -95,7 +115,8 @@ export default function NewProjectPage() {
 
       <PageHeader title="New project" description="Connect a repository and deploy it to AWS." />
 
-      <form onSubmit={submit} className="grid gap-6">
+      <div className="grid gap-6 lg:grid-cols-[1fr_23rem]">
+        <form onSubmit={submit} className="grid gap-6">
         {/* Project */}
         <section className="glass rounded-xl p-6">
           <h2 className="text-sm font-medium text-foreground">Project</h2>
@@ -311,15 +332,24 @@ export default function NewProjectPage() {
           </div>
         </section>
 
-        <div className="flex items-center justify-end gap-2">
-          <Button asChild variant="ghost">
-            <Link href="/projects">Cancel</Link>
-          </Button>
-          <Button type="submit" disabled={create.isPending} className="glow">
-            {create.isPending ? "Creating…" : "Create project"}
-          </Button>
-        </div>
-      </form>
+          <div className="flex items-center justify-end gap-2">
+            <Button asChild variant="ghost">
+              <Link href="/projects">Cancel</Link>
+            </Button>
+            <Button type="submit" disabled={create.isPending} className="glow">
+              {create.isPending ? "Creating…" : "Create project"}
+            </Button>
+          </div>
+        </form>
+
+        <aside className="lg:sticky lg:top-8 lg:h-fit">
+          <DockerfilePreview
+            title={repoDockerfile ? "Dockerfile" : "Dockerfile · preview"}
+            subtitle={previewSubtitle}
+            content={previewContent}
+          />
+        </aside>
+      </div>
     </FadeIn>
   );
 }

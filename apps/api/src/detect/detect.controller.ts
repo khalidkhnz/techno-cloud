@@ -24,8 +24,15 @@ export class DetectController {
   /** Fetch the repo's top-level files + package.json, then detect framework + build plan. */
   @Post("repo")
   async detectRepo(@Body() body: DetectRepoDto) {
-    const { inspection, inspected, note } = await inspectRepo(body);
+    const { inspection, inspected, note, dockerfile } = await inspectRepo(body);
     const detection = detectFramework(inspection);
-    return { detection, plan: buildPlan(detection), inspected, note, files: inspection.files };
+    return {
+      detection,
+      plan: buildPlan(detection),
+      inspected,
+      note,
+      files: inspection.files,
+      dockerfile: dockerfile ?? null,
+    };
   }
 }

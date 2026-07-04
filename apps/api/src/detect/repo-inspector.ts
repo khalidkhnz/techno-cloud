@@ -10,9 +10,11 @@ export interface InspectResult {
   inspection: SourceInspection;
   inspected: boolean;
   note?: string;
+  dockerfile?: string; // raw Dockerfile content when the repo has one (masked before display)
 }
 
 const EMPTY: SourceInspection = { files: [] };
+const MAX_DOCKERFILE_BYTES = 16_384;
 
 export async function inspectRepo(opts: {
   provider: string;
@@ -55,25 +57,35 @@ async function inspectGithub(repo: string, ref?: string, token?: string): Promis
   const root = (await rootRes.json()) as Array<{ name: string; type: string }>;
   const files = Array.isArray(root) ? root.map((f) => f.name) : [];
 
+  const readFile = async (path: string): Promise<string | undefined> => {
+    const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}${suffix}`, {
+      headers,
+    });
+    if (!res.ok) return undefined;
+    const body = (await res.json()) as { content?: string; encoding?: string };
+    if (body.content && body.encoding === "base64") {
+      return Buffer.from(body.content, "base64").toString("utf8");
+    }
+    return undefined;
+  };
+
   let packageJson: PackageJsonLike | undefined;
   if (files.includes("package.json")) {
-    const pkgRes = await fetch(
-      `https://api.github.com/repos/${repo}/contents/package.json${suffix}`,
-      { headers },
-    );
-    if (pkgRes.ok) {
-      const body = (await pkgRes.json()) as { content?: string; encoding?: string };
-      if (body.content && body.encoding === "base64") {
-        try {
-          packageJson = JSON.parse(
-            Buffer.from(body.content, "base64").toString("utf8"),
-          ) as PackageJsonLike;
-        } catch {
-          // malformed package.json — detection proceeds on file list alone
-        }
+    const raw = await readFile("package.json");
+    if (raw) {
+      try {
+        packageJson = JSON.parse(raw) as PackageJsonLike;
+      } catch {
+        // malformed package.json — detection proceeds on file list alone
       }
     }
   }
 
-  return { inspection: { files, packageJson }, inspected: true };
+  let dockerfile: string | undefined;
+  if (files.includes("Dockerfile")) {
+    const raw = await readFile("Dockerfile");
+    if (raw) dockerfile = raw.slice(0, MAX_DOCKERFILE_BYTES);
+  }
+
+  return { inspection: { files, packageJson }, inspected: true, dockerfile };
 }
