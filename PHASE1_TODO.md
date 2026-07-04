@@ -82,11 +82,11 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 - [ ] Deploy `apps/web` itself to Amplify (dogfood)
 
 ## 10. Platform Infra (`infra/`, dogfood — all serverless)
-- [ ] Pulumi stack: S3 (state, artifacts), DynamoDB (locks), SQS queues, ECR, Route 53 zone, ACM cert
+- [x] Pulumi stack: S3 (state+artifacts, versioned/private), DynamoDB (locks + idempotency+TTL), SQS (build/deploy + DLQs), ECR (scan+lifecycle), Route 53 zone, ACM wildcard cert _(authored + typechecks; not yet `pulumi up`'d)_
 - [ ] Deploy `apps/api` + workers as **Lambda** functions (Function URL + SQS triggers)
 - [ ] Neon project + pooled connection string in Parameter Store
-- [ ] IAM roles (least-privilege: CodeBuild, deploy/build Lambdas, Pulumi)
-- [ ] Confirm: no NAT Gateway, no ALB, no RDS, no Redis, no always-on compute
+- [x] IAM roles: CodeBuild (build + Pulumi provisioning) + shared Lambda exec role _(least-privilege pass deferred to PHASE4 §7)_
+- [x] Confirm: no NAT Gateway, no ALB, no RDS, no Redis, no always-on compute
 
 ## 11. Verify
 - [ ] E2E manual test hits full exit-criteria path for **both** Lambda and Amplify targets
