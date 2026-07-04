@@ -15,6 +15,17 @@ import type {
 
 export type WebhookHeaders = Record<string, string | string[] | undefined>;
 
+/** Presentation metadata for source providers — single source of truth for the master-data API. */
+export const SOURCE_PROVIDER_META: Record<
+  SourceProviderKind,
+  { label: string; repoPlaceholder: string; supportsToken: boolean }
+> = {
+  github: { label: "GitHub", repoPlaceholder: "owner/repo", supportsToken: true },
+  gitlab: { label: "GitLab", repoPlaceholder: "group/project", supportsToken: true },
+  bitbucket: { label: "Bitbucket", repoPlaceholder: "workspace/repo", supportsToken: true },
+  zip: { label: "Zip upload", repoPlaceholder: "", supportsToken: false },
+};
+
 export interface SourceProvider {
   readonly kind: SourceProviderKind;
 

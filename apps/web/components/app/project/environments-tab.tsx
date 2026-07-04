@@ -18,11 +18,12 @@ import {
   useDeleteEnvironment,
   useEnvironments,
 } from "@/lib/query/environments";
-
-const KINDS = ["development", "preview", "production"];
+import { useMeta } from "@/lib/query/meta";
 
 export function EnvironmentsTab({ projectId }: { projectId: string }) {
   const { data: envs, isLoading } = useEnvironments(projectId);
+  const { data: meta } = useMeta();
+  const kinds = meta?.environmentKinds ?? ["development", "preview", "production"];
   const create = useCreateEnvironment(projectId);
   const del = useDeleteEnvironment(projectId);
   const [name, setName] = useState("");
@@ -77,7 +78,7 @@ export function EnvironmentsTab({ projectId }: { projectId: string }) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {KINDS.map((k) => (
+            {kinds.map((k) => (
               <SelectItem key={k} value={k}>
                 {k}
               </SelectItem>

@@ -15,14 +15,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateInvite } from "@/lib/query/admin";
+import { useMeta } from "@/lib/query/meta";
 
-const ROLES = ["owner", "admin", "developer", "viewer"];
 const DEFAULT_TEAM = "00000000-0000-0000-0000-000000000000";
 
 export default function InviteUserPage() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("developer");
   const invite = useCreateInvite();
+  const { data: meta } = useMeta();
+  const roles = meta?.roles ?? ["owner", "admin", "developer", "viewer"];
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -57,7 +59,7 @@ export default function InviteUserPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {ROLES.map((r) => (
+                {roles.map((r) => (
                   <SelectItem key={r} value={r}>
                     {r}
                   </SelectItem>

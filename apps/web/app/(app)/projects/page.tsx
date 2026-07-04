@@ -1,15 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, FolderGit2, GitBranch } from "lucide-react";
+import { ArrowUpRight, FolderGit2, GitBranch, Plus } from "lucide-react";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState } from "@/components/app/empty-state";
-import { NewProjectDialog } from "@/components/app/new-project-dialog";
 import { TargetBadge } from "@/components/app/target-badge";
 import { Stagger, StaggerItem } from "@/components/motion";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProjects } from "@/lib/query/projects";
 import type { Project } from "@/lib/api";
+
+function NewProjectButton() {
+  return (
+    <Button asChild className="glow">
+      <Link href="/projects/new">
+        <Plus className="h-4 w-4" /> New project
+      </Link>
+    </Button>
+  );
+}
 
 export default function ProjectsPage() {
   const { data: projects, isLoading } = useProjects();
@@ -19,7 +29,7 @@ export default function ProjectsPage() {
       <PageHeader
         title="Projects"
         description="Every repo connected to the platform."
-        actions={<NewProjectDialog />}
+        actions={<NewProjectButton />}
       />
 
       {isLoading ? (
@@ -41,7 +51,7 @@ export default function ProjectsPage() {
           icon={FolderGit2}
           title="No projects yet"
           description="Connect your first repository to deploy it to AWS."
-          action={<NewProjectDialog />}
+          action={<NewProjectButton />}
         />
       )}
     </>

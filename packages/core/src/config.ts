@@ -54,6 +54,16 @@ export const TARGET_FLAG_KEY: Record<DeployTargetKind, keyof TargetFlags> = {
 /** Targets that do NOT scale to zero (always-on cost) — surfaced as a cost warning. */
 export const ALWAYS_ON_TARGETS: DeployTargetKind[] = ["apprunner", "ecs-fargate", "ec2"];
 
+/** Presentation metadata for deploy targets — single source of truth for the master-data API. */
+export const TARGET_META: Record<DeployTargetKind, { label: string; description: string }> = {
+  lambda: { label: "Lambda", description: "Serverless functions / APIs (arm64) — scales to zero." },
+  amplify: { label: "Amplify", description: "Next.js SSR / static web — managed hosting." },
+  "static-cdn": { label: "Static / CDN", description: "S3 + CloudFront for SPAs / static sites." },
+  apprunner: { label: "App Runner", description: "Simple always-on containers." },
+  "ecs-fargate": { label: "ECS Fargate", description: "Long-running containers." },
+  ec2: { label: "EC2", description: "Full VM control (GPU / licensed workloads)." },
+};
+
 export function isTargetEnabled(config: PlatformConfig, kind: DeployTargetKind): boolean {
   return config.targets[TARGET_FLAG_KEY[kind]];
 }
@@ -64,15 +74,15 @@ export function enabledTargets(config: PlatformConfig): DeployTargetKind[] {
   );
 }
 
-/** Cost-optimized defaults: serverless targets ON, always-on targets OFF. */
+/** All deploy targets enabled by default; admins can disable always-on targets via PlatformConfig. */
 export const DEFAULT_PLATFORM_CONFIG: PlatformConfig = {
   targets: {
     lambda: true,
     amplify: true,
     staticCdn: true,
-    appRunner: false,
-    ecsFargate: false,
-    ec2: false,
+    appRunner: true,
+    ecsFargate: true,
+    ec2: true,
   },
   routing: {
     subdomains: true,

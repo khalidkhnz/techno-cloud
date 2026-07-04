@@ -15,6 +15,7 @@ import { LogsModule } from "./logs/logs.module.js";
 import { DomainsModule } from "./domains/domains.module.js";
 import { TeamsModule } from "./teams/teams.module.js";
 import { CostsModule } from "./costs/costs.module.js";
+import { MetaModule } from "./meta/meta.module.js";
 import { PlatformConfigModule } from "./platform-config/platform-config.module.js";
 
 /**
@@ -38,6 +39,7 @@ import { PlatformConfigModule } from "./platform-config/platform-config.module.j
     DomainsModule,
     TeamsModule,
     CostsModule,
+    MetaModule,
     PlatformConfigModule,
   ],
   controllers: [HealthController],

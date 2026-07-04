@@ -64,6 +64,7 @@ export const api = {
   getEstimates: () =>
     req<Record<string, { monthlyLowUsd: number; monthlyHighUsd: number }>>("/estimates"),
   getPlatformConfig: () => req<PlatformConfig>("/platform-config"),
+  getMeta: () => req<Meta>("/meta"),
   getMeters: () => req<FreeTierMeter[]>("/meters"),
   getCostSnapshots: () => req<CostSnapshot[]>("/costs/snapshots"),
   getCostAdvice: () =>
@@ -143,6 +144,28 @@ export interface EnvVar {
   key: string;
   isSecret: boolean;
   value: string;
+}
+
+export interface MetaTarget {
+  kind: string;
+  label: string;
+  description: string;
+  enabled: boolean;
+  alwaysOn: boolean;
+}
+
+export interface MetaProvider {
+  kind: string;
+  label: string;
+  repoPlaceholder: string;
+  supportsToken: boolean;
+}
+
+export interface Meta {
+  targets: MetaTarget[];
+  providers: MetaProvider[];
+  roles: string[];
+  environmentKinds: string[];
 }
 
 export interface PlatformConfig {

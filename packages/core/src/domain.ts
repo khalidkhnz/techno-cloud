@@ -33,6 +33,7 @@ export interface SourceRef {
   repo?: string; // owner/name for git providers
   ref?: string; // branch / tag / commit
   zipKey?: string; // S3 key for zip uploads
+  token?: string; // optional access token for cloning private repos
 }
 
 /** Normalized source, staged in S3, ready for the build farm. */

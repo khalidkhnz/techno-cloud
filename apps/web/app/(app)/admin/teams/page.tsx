@@ -22,8 +22,9 @@ import {
   useTeams,
   useUpdateMemberRole,
 } from "@/lib/query/teams";
+import { useMeta } from "@/lib/query/meta";
 
-const ROLES = ["owner", "admin", "developer", "viewer"];
+const FALLBACK_ROLES = ["owner", "admin", "developer", "viewer"];
 
 export default function TeamsPage() {
   const { data: teams } = useTeams();
@@ -88,6 +89,8 @@ export default function TeamsPage() {
 
 function MembersPanel({ teamId }: { teamId: string }) {
   const { data: members } = useMembers(teamId);
+  const { data: meta } = useMeta();
+  const roles = meta?.roles ?? FALLBACK_ROLES;
   const add = useAddMember(teamId);
   const remove = useRemoveMember(teamId);
   const updateRole = useUpdateMemberRole(teamId);
@@ -110,7 +113,7 @@ function MembersPanel({ teamId }: { teamId: string }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {ROLES.map((r) => (
+                  {roles.map((r) => (
                     <SelectItem key={r} value={r}>
                       {r}
                     </SelectItem>
@@ -152,7 +155,7 @@ function MembersPanel({ teamId }: { teamId: string }) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {ROLES.map((r) => (
+            {roles.map((r) => (
               <SelectItem key={r} value={r}>
                 {r}
               </SelectItem>
