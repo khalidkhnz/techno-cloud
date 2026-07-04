@@ -54,6 +54,7 @@ export const api = {
   getEstimates: () =>
     req<Record<string, { monthlyLowUsd: number; monthlyHighUsd: number }>>("/estimates"),
   getPlatformConfig: () => req<PlatformConfig>("/platform-config"),
+  getMeters: () => req<FreeTierMeter[]>("/meters"),
   listEnvVars: (projectId: string) =>
     req<EnvVar[]>(`/projects/${projectId}/env?scope=production`),
   upsertEnvVar: (projectId: string, body: { key: string; value: string; isSecret: boolean }) =>
@@ -93,3 +94,14 @@ export const TARGET_FLAG: Record<string, string> = {
 };
 
 export const ALWAYS_ON_TARGETS = ["apprunner", "ecs-fargate", "ec2"];
+
+export interface FreeTierMeter {
+  service: string;
+  metric: string;
+  limit: number;
+  unit: string;
+  window: string;
+  used: number;
+  pct: number;
+  status: "ok" | "warn" | "alert" | "exceeded";
+}

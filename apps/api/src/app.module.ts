@@ -8,6 +8,7 @@ import { EstimatesModule } from "./estimates/estimates.module.js";
 import { EnvVarsModule } from "./env-vars/env-vars.module.js";
 import { DetectModule } from "./detect/detect.module.js";
 import { WebhooksModule } from "./webhooks/webhooks.module.js";
+import { MetersModule } from "./meters/meters.module.js";
 import { PlatformConfigModule } from "./platform-config/platform-config.module.js";
 
 /**
@@ -24,6 +25,7 @@ import { PlatformConfigModule } from "./platform-config/platform-config.module.j
     EnvVarsModule,
     DetectModule,
     WebhooksModule,
+    MetersModule,
     PlatformConfigModule,
   ],
   controllers: [HealthController],

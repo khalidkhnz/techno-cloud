@@ -48,9 +48,9 @@ and the Costs Module shows per-app estimates + free-tier meters with alerts.
 - [x] Rate card (`rates.ts`) seeded from `PRICING_REFERENCE.md` with `asOf` + source URLs + `FREE_TIER` allowances
 - [x] `estimateCost()` implemented for **all six targets** (lambda/fargate/ec2/static-cdn/apprunner/amplify) + surfaced in UI target picker via `/estimates` endpoint
 - [ ] Resource tagging in Pulumi: `td:project/team/env/deploymentId/target`
-- [ ] **Free-tier meters** from CloudWatch + Neon API (Lambda, SQS, DynamoDB, CodeBuild, CloudWatch, CloudFront, Amplify, Neon)
-- [ ] Alerts at 80/95/100% via EventBridge Scheduler → Lambda → Nodemailer
-- [ ] Dashboard: overview + per-project cost estimate + meter bars
+- [~] **Free-tier meters**: catalog from `FREE_TIER` + `meterStatus` (80/95/100%) + `GET /meters` (usage+status) + `PUT /meters/usage` ingest; CloudWatch/Neon usage poller pending
+- [ ] Alerts at 80/95/100% via EventBridge Scheduler → Lambda → Nodemailer _(status computed; scheduler/email pending)_
+- [~] Dashboard: `/costs` page with **meter bars** ✓; per-project cost estimate + overview pending
 
 ## 8. Feature Flags Expansion
 - [~] Flags wired into UI availability + API create validation (`isTargetEnabled`/`enabledTargets` in core); driver-level flag checks pending (drivers stubbed)

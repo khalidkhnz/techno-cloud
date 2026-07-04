@@ -69,6 +69,7 @@ export default function ProjectsPage() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h1>Projects</h1>
         <span style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <Link href="/costs">Costs</Link>
           <Link href="/admin/invite">Invite user</Link>
           <button onClick={() => signOut().then(() => router.replace("/login"))}>Sign out</button>
         </span>
