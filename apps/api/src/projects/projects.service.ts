@@ -1,7 +1,7 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { count, eq, type Db, projects } from "@techno-deployer/db";
 import { isTargetEnabled } from "@techno-deployer/core";
-import type { DeployTargetKind } from "@techno-deployer/core";
+import type { BuildConfig, DeployTargetKind } from "@techno-deployer/core";
 import type { SourceRef } from "@techno-deployer/core";
 import { DRIZZLE } from "../drizzle/drizzle.module.js";
 import { PlatformConfigService } from "../platform-config/platform-config.service.js";
@@ -11,6 +11,7 @@ export interface CreateProjectDto {
   name: string;
   target?: DeployTargetKind;
   source: SourceRef;
+  buildConfig?: BuildConfig;
 }
 
 @Injectable()
@@ -48,7 +49,13 @@ export class ProjectsService {
 
     const [row] = await this.db
       .insert(projects)
-      .values({ teamId: dto.teamId, name: dto.name, target, source: dto.source })
+      .values({
+        teamId: dto.teamId,
+        name: dto.name,
+        target,
+        source: dto.source,
+        buildConfig: dto.buildConfig ?? null,
+      })
       .returning();
     return row;
   }

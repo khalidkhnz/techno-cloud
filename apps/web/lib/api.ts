@@ -35,8 +35,13 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   listProjects: () => req<Project[]>("/projects"),
   getProject: (id: string) => req<Project>(`/projects/${id}`),
-  createProject: (body: { teamId: string; name: string; target?: string; source: unknown }) =>
-    req<Project>("/projects", { method: "POST", body: JSON.stringify(body) }),
+  createProject: (body: {
+    teamId: string;
+    name: string;
+    target?: string;
+    source: unknown;
+    buildConfig?: { installCommand?: string; buildCommand?: string; startCommand?: string };
+  }) => req<Project>("/projects", { method: "POST", body: JSON.stringify(body) }),
   listDeployments: (projectId: string) =>
     req<Deployment[]>(`/projects/${projectId}/deployments`),
   createDeployment: (projectId: string) =>

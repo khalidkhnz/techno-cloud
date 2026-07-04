@@ -18,7 +18,7 @@ and the Costs Module shows per-app estimates + free-tier meters with alerts.
 ## 2. Framework Detection
 - [x] Detector: inspect Dockerfile + `package.json`/framework signatures (`detectFramework` in `packages/core`)
 - [x] Recommend default target: next→amplify, vite/CRA/static→static-cdn, express/fastify/nest→lambda, docker→lambda, fallback→lambda (+ buildStrategy dockerfile/nixpacks/static)
-- [ ] Nixpacks build/start overrides in project settings
+- [x] Nixpacks build/start/install overrides — `project.buildConfig` (migration 0005) → `NIXPACKS_*` env on the build CodeBuild; UI create-form fields
 - [ ] Static-build path (framework `build` → output dir → S3)
 
 ## 3. Deploy Targets (add remaining drivers)

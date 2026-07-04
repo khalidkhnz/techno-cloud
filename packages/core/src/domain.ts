@@ -18,6 +18,14 @@ export interface Project {
   name: string;
   source: SourceRef;
   target: DeployTargetKind;
+  buildConfig?: BuildConfig;
+}
+
+/** Optional build overrides — passed to Nixpacks (ignored when a Dockerfile is present). */
+export interface BuildConfig {
+  installCommand?: string;
+  buildCommand?: string;
+  startCommand?: string;
 }
 
 export interface SourceRef {

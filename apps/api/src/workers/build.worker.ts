@@ -8,7 +8,7 @@ import type { SQSHandler } from "aws-lambda";
 import { db, deployments, eq, projects } from "@techno-deployer/db";
 import { startBuild } from "@techno-deployer/aws";
 import type { BuildJob } from "@techno-deployer/aws";
-import type { SourceRef } from "@techno-deployer/core";
+import type { BuildConfig, SourceRef } from "@techno-deployer/core";
 import { createSourceRegistry } from "@techno-deployer/providers";
 
 const sources = createSourceRegistry();
@@ -35,12 +35,17 @@ export const handler: SQSHandler = async (event) => {
         ? ""
         : sources.get(source.provider).cloneUrl(source.repo);
 
+    // Nixpacks reads NIXPACKS_* env vars; forward any per-project build overrides.
+    const bc = (project.buildConfig ?? {}) as BuildConfig;
     const buildId = await startBuild(process.env.BUILD_PROJECT_NAME ?? "", {
       DEPLOYMENT_ID: job.deploymentId,
       PROJECT_ID: job.projectId,
       TARGET: project.target,
       CLONE_URL: cloneUrl,
       SOURCE_REF: source.ref ?? "main",
+      ...(bc.installCommand ? { NIXPACKS_INSTALL_CMD: bc.installCommand } : {}),
+      ...(bc.buildCommand ? { NIXPACKS_BUILD_CMD: bc.buildCommand } : {}),
+      ...(bc.startCommand ? { NIXPACKS_START_CMD: bc.startCommand } : {}),
     });
 
     await db

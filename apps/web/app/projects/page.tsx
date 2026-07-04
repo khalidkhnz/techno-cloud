@@ -16,6 +16,8 @@ export default function ProjectsPage() {
   const [name, setName] = useState("");
   const [target, setTarget] = useState("lambda");
   const [repo, setRepo] = useState("");
+  const [buildCmd, setBuildCmd] = useState("");
+  const [startCmd, setStartCmd] = useState("");
   const [estimates, setEstimates] = useState<
     Record<string, { monthlyLowUsd: number; monthlyHighUsd: number }>
   >({});
@@ -48,14 +50,21 @@ export default function ProjectsPage() {
     e.preventDefault();
     setError(null);
     try {
+      const buildConfig =
+        buildCmd || startCmd
+          ? { ...(buildCmd ? { buildCommand: buildCmd } : {}), ...(startCmd ? { startCommand: startCmd } : {}) }
+          : undefined;
       await api.createProject({
         teamId: "00000000-0000-0000-0000-000000000000",
         name,
         target,
         source: { provider: "github", repo },
+        buildConfig,
       });
       setName("");
       setRepo("");
+      setBuildCmd("");
+      setStartCmd("");
       load();
     } catch (e) {
       setError(String(e));
@@ -96,6 +105,8 @@ export default function ProjectsPage() {
         {ALWAYS_ON_TARGETS.includes(target) && (
           <p className="text-sm text-amber-600">⚠ Always-on target — billed 24/7 (does not scale to zero).</p>
         )}
+        <input className="input" placeholder="build command (optional, Nixpacks)" value={buildCmd} onChange={(e) => setBuildCmd(e.target.value)} />
+        <input className="input" placeholder="start command (optional, Nixpacks)" value={startCmd} onChange={(e) => setStartCmd(e.target.value)} />
         <button className="btn" type="submit">
           Create project
         </button>

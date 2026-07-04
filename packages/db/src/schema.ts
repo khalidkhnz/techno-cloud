@@ -129,6 +129,7 @@ export const projects = pgTable("projects", {
   name: text("name").notNull(),
   target: targetEnum("target").notNull().default("lambda"),
   source: jsonb("source").notNull(), // { provider, repo, ref, zipKey }
+  buildConfig: jsonb("build_config"), // { installCommand?, buildCommand?, startCommand? } — Nixpacks overrides
   flags: jsonb("flags"), // per-project PlatformConfig overrides
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
