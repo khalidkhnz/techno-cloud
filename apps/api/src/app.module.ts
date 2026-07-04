@@ -11,6 +11,7 @@ import { DetectModule } from "./detect/detect.module.js";
 import { WebhooksModule } from "./webhooks/webhooks.module.js";
 import { MetersModule } from "./meters/meters.module.js";
 import { EnvironmentsModule } from "./environments/environments.module.js";
+import { LogsModule } from "./logs/logs.module.js";
 import { PlatformConfigModule } from "./platform-config/platform-config.module.js";
 
 /**
@@ -30,6 +31,7 @@ import { PlatformConfigModule } from "./platform-config/platform-config.module.j
     WebhooksModule,
     MetersModule,
     EnvironmentsModule,
+    LogsModule,
     PlatformConfigModule,
   ],
   controllers: [HealthController],

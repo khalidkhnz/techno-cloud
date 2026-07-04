@@ -164,6 +164,9 @@ importers:
 
   packages/aws:
     dependencies:
+      '@aws-sdk/client-cloudwatch-logs':
+        specifier: ^3.670.0
+        version: 3.1079.0
       '@aws-sdk/client-codebuild':
         specifier: ^3.670.0
         version: 3.1079.0
@@ -331,6 +334,10 @@ packages:
   '@angular-devkit/schematics@17.3.11':
     resolution: {integrity: sha512-I5wviiIqiFwar9Pdk30Lujk8FczEEc18i22A5c6Z9lbmhPQdTroDnEQdsfXjy404wPe8H62s0I15o4pmMGfTYQ==}
     engines: {node: ^18.13.0 || >=20.9.0, npm: ^6.11.0 || ^7.5.6 || >=8.0.0, yarn: '>= 1.13.0'}
+
+  '@aws-sdk/client-cloudwatch-logs@3.1079.0':
+    resolution: {integrity: sha512-mn+j4nDWi599W90MGljDBKExo6bGH8d6JzNFGPNM0udsWJGWQWNp1teCINEXUKY3uTEslqyPgcxhb62EkdciRA==}
+    engines: {node: '>=20.0.0'}
 
   '@aws-sdk/client-codebuild@3.1079.0':
     resolution: {integrity: sha512-VPn4vVeibj1CArj91QKL1MXqPTs1SoE4ZT4sV+M6Q68MVk4Xcw29iNZpKqsc9SNmXCdQj80kbWwdoG9UT0nfTQ==}
@@ -4466,6 +4473,17 @@ snapshots:
       rxjs: 7.8.1
     transitivePeerDependencies:
       - chokidar
+
+  '@aws-sdk/client-cloudwatch-logs@3.1079.0':
+    dependencies:
+      '@aws-sdk/core': 3.974.27
+      '@aws-sdk/credential-provider-node': 3.972.62
+      '@aws-sdk/types': 3.973.15
+      '@smithy/core': 3.29.1
+      '@smithy/fetch-http-handler': 5.6.3
+      '@smithy/node-http-handler': 4.9.3
+      '@smithy/types': 4.15.1
+      tslib: 2.8.1
 
   '@aws-sdk/client-codebuild@3.1079.0':
     dependencies:

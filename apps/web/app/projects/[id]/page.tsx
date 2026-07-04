@@ -26,8 +26,19 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
   const [envKind, setEnvKind] = useState("development");
   const [error, setError] = useState<string | null>(null);
 
+  const [logs, setLogs] = useState<{ timestamp: number; message: string }[] | null>(null);
+
   const loadEnv = () => api.listEnvVars(id).then(setEnvVars).catch(() => {});
   const loadEnvs = () => api.listEnvironments(id).then(setEnvs).catch(() => {});
+
+  async function showLogs(deploymentId: string) {
+    setError(null);
+    try {
+      setLogs(await api.getLogs(id, deploymentId, "build"));
+    } catch (e) {
+      setError(String(e));
+    }
+  }
 
   const load = () => {
     api.getProject(id).then(setProject).catch((e) => setError(String(e)));
@@ -107,9 +118,12 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
                 {d.url}
               </a>
             )}
+            <button className="btn btn-secondary ml-auto" onClick={() => showLogs(d.id)}>
+              Logs
+            </button>
             {d.state === "ready" && (
               <button
-                className="btn btn-secondary ml-auto"
+                className="btn btn-secondary"
                 onClick={() =>
                   api.rollbackDeployment(id, d.id).then(load).catch((e) => setError(String(e)))
                 }
@@ -121,6 +135,11 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
         ))}
         {deployments.length === 0 && <li className="muted px-4 py-3">No deployments yet.</li>}
       </ul>
+      {logs && (
+        <pre className="mt-2 max-h-72 overflow-auto rounded-lg border border-neutral-200 bg-neutral-900 p-3 text-xs leading-relaxed text-neutral-100">
+          {logs.length ? logs.map((l, i) => <div key={i}>{l.message}</div>) : "No logs yet."}
+        </pre>
+      )}
 
       <h2 className="mt-6">Environments</h2>
       <ul className="mt-2 divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">

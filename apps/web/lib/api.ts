@@ -45,6 +45,10 @@ export const api = {
     req<Deployment>(`/projects/${projectId}/deployments/${deploymentId}/rollback`, {
       method: "POST",
     }),
+  getLogs: (projectId: string, deploymentId: string, stream: "build" | "runtime" = "build") =>
+    req<{ timestamp: number; message: string }[]>(
+      `/projects/${projectId}/deployments/${deploymentId}/logs?stream=${stream}`,
+    ),
   acceptInvite: (token: string) =>
     req<{ ok: boolean; email?: string }>(`/invites/accept?token=${encodeURIComponent(token)}`, {
       method: "POST",

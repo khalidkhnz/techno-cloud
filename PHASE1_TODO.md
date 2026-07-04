@@ -57,7 +57,7 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 - [x] Provision reusable CodeBuild project (Pulumi, arm64, privileged for docker, ECR via role, CloudWatch logs) — `infra/build.ts`; StartBuild passes only PLAINTEXT env overrides (no source/buildspec override)
 - [x] Build detector in buildspec: Dockerfile present → `docker build` : **Nixpacks**; push to ECR tagged by deploymentId; worker computes CLONE_URL + SOURCE_REF via the source provider
 - [x] Build worker Lambda triggers CodeBuild; tracks status (saves buildId, sets building state)
-- [ ] Stream CodeBuild/CloudWatch logs → `BuildLog` + expose via polling endpoint
+- [x] CloudWatch logs → **polling endpoint** `GET /projects/:id/deployments/:id/logs?stream=build|runtime` (resolves group per target) + UI log viewer
 - [~] Handle build failures cleanly _(worker marks `failed`; CodeBuild-completion → deploy bridge pending)_
 
 ## 7. Pulumi Engine (`packages/pulumi` + `packages/targets`)
@@ -79,7 +79,7 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 - [x] Auth pages: **login (OTP)**, **accept-invite**, **logout**, session guard on /projects (Better Auth client wrappers)
 - [~] Projects list + create (GitHub repo + target picker; zip upload pending)
 - [x] Project detail: target shown + **Deploy button**
-- [~] Deployment list with **5s status polling** ✓; live log stream pending
+- [x] Deployment list with **5s status polling** + **build-log viewer** (polls CloudWatch)
 - [x] Admin: invite user (page → POST /invites, emails accept link)
 - [ ] Deploy `apps/web` itself to Amplify (dogfood)
 
