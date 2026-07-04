@@ -35,8 +35,8 @@ and the Costs Module shows per-app estimates + free-tier meters with alerts.
 - [~] UI: add/remove ✓, secret values masked `***` and never returned; audit-on-access pending
 
 ## 5. Environments
-- [ ] `Environment` records per project (production baseline)
-- [ ] Per-environment config, env vars, target settings; read in `DeployContext`
+- [x] `Environment` records per project — CRUD API `/projects/:id/environments` + UI (production protected from deletion; auto-created on first deploy)
+- [~] Per-environment env vars (scope) ✓; per-environment target settings + full `DeployContext.environment` wiring pending
 
 ## 6. Rollback
 - [x] Track immutable artifact per deployment (`imageUri` = ECR:`<deploymentId>`; `rolledBackFrom` link)

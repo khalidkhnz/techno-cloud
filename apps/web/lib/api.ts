@@ -55,6 +55,17 @@ export const api = {
     req<Record<string, { monthlyLowUsd: number; monthlyHighUsd: number }>>("/estimates"),
   getPlatformConfig: () => req<PlatformConfig>("/platform-config"),
   getMeters: () => req<FreeTierMeter[]>("/meters"),
+  listEnvironments: (projectId: string) =>
+    req<Environment[]>(`/projects/${projectId}/environments`),
+  createEnvironment: (projectId: string, body: { kind: string; name: string }) =>
+    req<Environment>(`/projects/${projectId}/environments`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  deleteEnvironment: (projectId: string, environmentId: string) =>
+    req<{ ok: boolean }>(`/projects/${projectId}/environments/${environmentId}`, {
+      method: "DELETE",
+    }),
   listEnvVars: (projectId: string) =>
     req<EnvVar[]>(`/projects/${projectId}/env?scope=production`),
   upsertEnvVar: (projectId: string, body: { key: string; value: string; isSecret: boolean }) =>
@@ -94,6 +105,13 @@ export const TARGET_FLAG: Record<string, string> = {
 };
 
 export const ALWAYS_ON_TARGETS = ["apprunner", "ecs-fargate", "ec2"];
+
+export interface Environment {
+  id: string;
+  projectId: string;
+  kind: string;
+  name: string;
+}
 
 export interface FreeTierMeter {
   service: string;

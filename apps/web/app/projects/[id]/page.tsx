@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { api, type Deployment, type EnvVar, type Project } from "../../../lib/api";
+import { api, type Deployment, type EnvVar, type Environment, type Project } from "../../../lib/api";
 
 const STATE_COLOR: Record<Deployment["state"], string> = {
   queued: "#888",
@@ -21,15 +21,32 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
   const [ek, setEk] = useState("");
   const [ev, setEv] = useState("");
   const [eSecret, setESecret] = useState(false);
+  const [envs, setEnvs] = useState<Environment[]>([]);
+  const [envName, setEnvName] = useState("");
+  const [envKind, setEnvKind] = useState("development");
   const [error, setError] = useState<string | null>(null);
 
   const loadEnv = () => api.listEnvVars(id).then(setEnvVars).catch(() => {});
+  const loadEnvs = () => api.listEnvironments(id).then(setEnvs).catch(() => {});
 
   const load = () => {
     api.getProject(id).then(setProject).catch((e) => setError(String(e)));
     api.listDeployments(id).then(setDeployments).catch((e) => setError(String(e)));
     loadEnv();
+    loadEnvs();
   };
+
+  async function addEnvironment(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    try {
+      await api.createEnvironment(id, { kind: envKind, name: envName });
+      setEnvName("");
+      loadEnvs();
+    } catch (e) {
+      setError(String(e));
+    }
+  }
 
   async function addEnvVar(e: React.FormEvent) {
     e.preventDefault();
@@ -102,6 +119,31 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
         ))}
         {deployments.length === 0 && <li style={{ color: "#888" }}>No deployments yet.</li>}
       </ul>
+
+      <h2 style={{ marginTop: "1.5rem" }}>Environments</h2>
+      <ul>
+        {envs.map((en) => (
+          <li key={en.id}>
+            <strong>{en.name}</strong> <small style={{ color: "#888" }}>({en.kind})</small>
+            {en.kind !== "production" && (
+              <>
+                {" "}
+                <button onClick={() => api.deleteEnvironment(id, en.id).then(loadEnvs)}>remove</button>
+              </>
+            )}
+          </li>
+        ))}
+        {envs.length === 0 && <li style={{ color: "#888" }}>No environments yet.</li>}
+      </ul>
+      <form onSubmit={addEnvironment} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <input placeholder="name" value={envName} onChange={(e) => setEnvName(e.target.value)} required />
+        <select value={envKind} onChange={(e) => setEnvKind(e.target.value)}>
+          <option value="development">development</option>
+          <option value="preview">preview</option>
+          <option value="production">production</option>
+        </select>
+        <button type="submit">Add environment</button>
+      </form>
 
       <h2 style={{ marginTop: "1.5rem" }}>Environment variables</h2>
       <p style={{ color: "#888", fontSize: 12 }}>Scope: production. Secrets are stored in Parameter Store and shown as ***.</p>
