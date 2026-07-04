@@ -65,20 +65,22 @@ export default function ProjectsPage() {
   if (isPending || !session) return null;
 
   return (
-    <main style={{ fontFamily: "system-ui", padding: "2rem", maxWidth: 760 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <main className="container-app">
+      <div className="flex items-center justify-between">
         <h1>Projects</h1>
-        <span style={{ display: "flex", gap: 12, alignItems: "center" }}>
+        <span className="flex items-center gap-4 text-sm">
           <Link href="/costs">Costs</Link>
           <Link href="/admin/invite">Invite user</Link>
-          <button onClick={() => signOut().then(() => router.replace("/login"))}>Sign out</button>
+          <button className="btn btn-secondary" onClick={() => signOut().then(() => router.replace("/login"))}>
+            Sign out
+          </button>
         </span>
       </div>
 
-      <form onSubmit={create} style={{ display: "grid", gap: 8, margin: "1rem 0", maxWidth: 420 }}>
-        <input placeholder="Project name" value={name} onChange={(e) => setName(e.target.value)} required />
-        <input placeholder="owner/repo" value={repo} onChange={(e) => setRepo(e.target.value)} />
-        <select value={target} onChange={(e) => setTarget(e.target.value)}>
+      <form onSubmit={create} className="card mt-4 grid max-w-md gap-2">
+        <input className="input" placeholder="Project name" value={name} onChange={(e) => setName(e.target.value)} required />
+        <input className="input" placeholder="owner/repo" value={repo} onChange={(e) => setRepo(e.target.value)} />
+        <select className="input" value={target} onChange={(e) => setTarget(e.target.value)}>
           {availableTargets.map((t) => (
             <option key={t} value={t}>
               {t}
@@ -86,27 +88,30 @@ export default function ProjectsPage() {
           ))}
         </select>
         {est && (
-          <small style={{ color: "#888" }}>
+          <p className="muted">
             Est. ~${est.monthlyLowUsd}–${est.monthlyHighUsd}/mo
-          </small>
+          </p>
         )}
         {ALWAYS_ON_TARGETS.includes(target) && (
-          <small style={{ color: "#b8860b" }}>
-            ⚠ Always-on target — billed 24/7 (does not scale to zero).
-          </small>
+          <p className="text-sm text-amber-600">⚠ Always-on target — billed 24/7 (does not scale to zero).</p>
         )}
-        <button type="submit">Create project</button>
+        <button className="btn" type="submit">
+          Create project
+        </button>
       </form>
 
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
-      <ul>
+      <ul className="mt-6 divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
         {projects.map((p) => (
-          <li key={p.id}>
-            <Link href={`/projects/${p.id}`}>{p.name}</Link> <small style={{ color: "#888" }}>({p.target})</small>
+          <li key={p.id} className="flex items-center justify-between px-4 py-3">
+            <Link href={`/projects/${p.id}`} className="font-medium">
+              {p.name}
+            </Link>
+            <span className="badge bg-neutral-100 text-neutral-600">{p.target}</span>
           </li>
         ))}
-        {projects.length === 0 && <li style={{ color: "#888" }}>No projects yet.</li>}
+        {projects.length === 0 && <li className="muted px-4 py-3">No projects yet.</li>}
       </ul>
     </main>
   );

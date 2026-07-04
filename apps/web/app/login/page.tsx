@@ -33,42 +33,46 @@ export default function LoginPage() {
   }
 
   return (
-    <main style={{ fontFamily: "system-ui", padding: "3rem", maxWidth: 420 }}>
-      <h1>Sign in</h1>
-      <p style={{ color: "#888" }}>Invite-only. Enter your email to receive a one-time code.</p>
+    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-6">
+      <div className="card">
+        <h1>Sign in</h1>
+        <p className="muted mt-1">Invite-only. Enter your email to receive a one-time code.</p>
 
-      {!sent ? (
-        <form onSubmit={sendCode} style={{ display: "grid", gap: 8 }}>
-          <input
-            type="email"
-            placeholder="you@company.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <button type="submit" disabled={busy}>
-            {busy ? "Sending…" : "Send code"}
-          </button>
-        </form>
-      ) : (
-        <form onSubmit={verify} style={{ display: "grid", gap: 8 }}>
-          <input
-            inputMode="numeric"
-            placeholder="6-digit code"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            required
-          />
-          <button type="submit" disabled={busy}>
-            {busy ? "Verifying…" : "Verify & sign in"}
-          </button>
-          <button type="button" onClick={() => setSent(false)} style={{ background: "none", border: "none", color: "#1e6fd9", cursor: "pointer" }}>
-            Use a different email
-          </button>
-        </form>
-      )}
+        {!sent ? (
+          <form onSubmit={sendCode} className="mt-4 grid gap-2">
+            <input
+              className="input"
+              type="email"
+              placeholder="you@company.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <button className="btn" type="submit" disabled={busy}>
+              {busy ? "Sending…" : "Send code"}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={verify} className="mt-4 grid gap-2">
+            <input
+              className="input tracking-[0.3em]"
+              inputMode="numeric"
+              placeholder="6-digit code"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              required
+            />
+            <button className="btn" type="submit" disabled={busy}>
+              {busy ? "Verifying…" : "Verify & sign in"}
+            </button>
+            <button type="button" className="text-sm text-blue-600 hover:underline" onClick={() => setSent(false)}>
+              Use a different email
+            </button>
+          </form>
+        )}
 
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+      </div>
     </main>
   );
 }
