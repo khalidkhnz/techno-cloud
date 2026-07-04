@@ -12,6 +12,11 @@ export class MetersController {
     return this.meters.list();
   }
 
+  @Get("alerts")
+  alerts() {
+    return this.meters.alerts();
+  }
+
   @UseGuards(AdminGuard)
   @Put("usage")
   ingest(@Body() dto: IngestUsageDto) {

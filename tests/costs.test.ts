@@ -3,7 +3,9 @@ import {
   FREE_TIER_METERS,
   estimateFargate,
   estimateLambda,
+  isBreached,
   meterStatus,
+  summarizeAlerts,
 } from "@techno-deployer/costs";
 
 describe("cost estimators", () => {
@@ -30,5 +32,24 @@ describe("meterStatus", () => {
   it("has a lambda-requests meter at 1M", () => {
     const m = FREE_TIER_METERS.find((x) => x.service === "lambda" && x.metric === "requests");
     expect(m?.limit).toBe(1_000_000);
+  });
+});
+
+describe("alert evaluation", () => {
+  it("flags any non-ok status as breached", () => {
+    expect(isBreached("ok")).toBe(false);
+    expect(isBreached("warn")).toBe(true);
+    expect(isBreached("exceeded")).toBe(true);
+  });
+
+  it("summarizes counts across statuses", () => {
+    const s = summarizeAlerts([
+      { status: "ok" },
+      { status: "warn" },
+      { status: "warn" },
+      { status: "alert" },
+      { status: "exceeded" },
+    ]);
+    expect(s).toEqual({ warn: 2, alert: 1, exceeded: 1, breached: 4 });
   });
 });

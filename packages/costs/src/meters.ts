@@ -41,3 +41,21 @@ export const FREE_TIER_METERS: MeterDef[] = [
 export function meterKey(service: string, metric: string): string {
   return `${service}:${metric}`;
 }
+
+export function isBreached(status: MeterStatus): boolean {
+  return status !== "ok";
+}
+
+/** Roll up meter statuses into counts — the input to alerting. */
+export function summarizeAlerts(items: ReadonlyArray<{ status: MeterStatus }>): {
+  warn: number;
+  alert: number;
+  exceeded: number;
+  breached: number;
+} {
+  const count = (s: MeterStatus) => items.filter((i) => i.status === s).length;
+  const warn = count("warn");
+  const alert = count("alert");
+  const exceeded = count("exceeded");
+  return { warn, alert, exceeded, breached: warn + alert + exceeded };
+}

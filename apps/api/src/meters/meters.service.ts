@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { and, eq, freeTierMeters, type Db } from "@techno-deployer/db";
-import { FREE_TIER_METERS, meterKey, meterStatus } from "@techno-deployer/costs";
+import { FREE_TIER_METERS, meterKey, meterStatus, summarizeAlerts } from "@techno-deployer/costs";
 import { DRIZZLE } from "../drizzle/drizzle.module.js";
 
 export interface IngestUsageDto {
@@ -21,6 +21,13 @@ export class MetersService {
       const u = used.get(meterKey(m.service, m.metric)) ?? 0;
       return { ...m, used: u, ...meterStatus(u, m.limit) };
     });
+  }
+
+  /** Meters currently in warn/alert/exceeded, plus a rollup — the input to alert notifications. */
+  async alerts() {
+    const all = await this.list();
+    const breached = all.filter((m) => m.status !== "ok");
+    return { summary: summarizeAlerts(all), breached };
   }
 
   /** Ingest a usage reading (called by the CloudWatch/Neon poller — that source is a TODO). */
