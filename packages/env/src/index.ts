@@ -24,6 +24,7 @@ export const env = createEnv({
     PULUMI_LOCK_TABLE: z.string().optional(),
     ECR_REGISTRY: z.string().optional(),
     BUILD_PROJECT_NAME: z.string().optional(),
+    DEPLOY_PROJECT_NAME: z.string().optional(),
     SSM_PREFIX: z.string().optional(),
     STACK_LOCK_TABLE: z.string().optional(),
     IDEMPOTENCY_TABLE: z.string().optional(),
