@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, ArrowLeft, KeyRound, Leaf } from "lucide-react";
+import { AlertTriangle, ArrowLeft, KeyRound, Leaf, ScanSearch, Sparkles } from "lucide-react";
 import { PageHeader } from "@/components/app/page-header";
 import { TargetBadge } from "@/components/app/target-badge";
+import { BuildPlanView } from "@/components/app/build-plan";
 import { FadeIn } from "@/components/motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { useCreateProject } from "@/lib/query/projects";
 import { useEstimates } from "@/lib/query/costs";
 import { useMeta } from "@/lib/query/meta";
+import { useDetectRepo } from "@/lib/query/detect";
 
 const DEFAULT_TEAM = "00000000-0000-0000-0000-000000000000";
 
@@ -36,8 +38,22 @@ export default function NewProjectPage() {
   const [notifyEmail, setNotifyEmail] = useState("");
 
   const create = useCreateProject();
+  const detect = useDetectRepo();
+  const detection = detect.data;
   const { data: meta } = useMeta();
   const { data: estimates } = useEstimates();
+
+  function analyze() {
+    if (!repo) return;
+    detect.mutate(
+      { provider, repo, ...(token ? { token } : {}) },
+      {
+        onSuccess: (r) => {
+          if (r.detection.recommendedTarget) setTarget(r.detection.recommendedTarget);
+        },
+      },
+    );
+  }
 
   const providers = meta?.providers ?? [];
   const targets = (meta?.targets ?? []).filter((t) => t.enabled);
@@ -158,6 +174,52 @@ export default function NewProjectPage() {
               )
             )}
           </div>
+        </section>
+
+        {/* Framework detection */}
+        <section className="glass rounded-xl p-6">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-sm font-medium text-foreground">Detect project type</h2>
+              <p className="text-xs text-muted-foreground">
+                Inspect the repo to detect the framework and build steps.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={analyze}
+              disabled={!repo || isZip || detect.isPending}
+            >
+              <ScanSearch className="h-3.5 w-3.5" />
+              {detect.isPending ? "Analyzing…" : "Analyze repository"}
+            </Button>
+          </div>
+
+          {detection && (
+            <div className="mt-4 grid gap-3">
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span className="font-medium capitalize text-foreground">
+                  {detection.detection.framework}
+                </span>
+                <span className="text-muted-foreground">detected</span>
+                {detection.detection.recommendedTarget && (
+                  <span className="inline-flex items-center gap-1 rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                    → recommends {detection.detection.recommendedTarget}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">{detection.detection.reason}</p>
+              {!detection.inspected && detection.note && (
+                <p className="flex items-center gap-1.5 text-xs text-amber-300">
+                  <AlertTriangle className="h-3.5 w-3.5" /> {detection.note}
+                </p>
+              )}
+              <BuildPlanView plan={detection.plan} />
+            </div>
+          )}
         </section>
 
         {/* Deploy target */}

@@ -92,3 +92,62 @@ export function detectFramework(input: SourceInspection): FrameworkDetection {
     reason: "No strong signal — defaulting to Lambda via Nixpacks; override in project settings.",
   };
 }
+
+export interface BuildStep {
+  label: string;
+  command?: string;
+}
+
+export interface BuildPlan {
+  strategy: BuildStrategy;
+  title: string;
+  steps: BuildStep[];
+}
+
+export interface BuildCommands {
+  installCommand?: string;
+  buildCommand?: string;
+  startCommand?: string;
+}
+
+/**
+ * Human-readable build plan for a detection — mirrors the CodeBuild buildspec
+ * (Dockerfile-first → Nixpacks fallback; static export → S3/CloudFront). Surfaced in the UI so
+ * users see exactly which Docker/build steps will run.
+ */
+export function buildPlan(detection: FrameworkDetection, cmds?: BuildCommands): BuildPlan {
+  if (detection.buildStrategy === "dockerfile") {
+    return {
+      strategy: "dockerfile",
+      title: "Docker — Dockerfile detected",
+      steps: [
+        { label: "Build image from your Dockerfile", command: "docker build -t <image> ." },
+        { label: "Push image to ECR", command: "docker push <image>" },
+        { label: "Provision the deploy target with the image (Pulumi)" },
+      ],
+    };
+  }
+
+  if (detection.buildStrategy === "static") {
+    return {
+      strategy: "static",
+      title: "Static export → S3 + CloudFront",
+      steps: [
+        { label: "Install dependencies", command: cmds?.installCommand ?? "auto (npm / pnpm / yarn)" },
+        { label: "Build static assets", command: cmds?.buildCommand ?? "auto (build script)" },
+        { label: "Upload to S3 and invalidate CloudFront" },
+      ],
+    };
+  }
+
+  return {
+    strategy: "nixpacks",
+    title: "Nixpacks — no Dockerfile",
+    steps: [
+      { label: "Detect toolchain & install", command: cmds?.installCommand ?? "auto (Nixpacks)" },
+      { label: "Build", command: cmds?.buildCommand ?? "auto (Nixpacks / build script)" },
+      { label: "Package image & push to ECR" },
+      ...(cmds?.startCommand ? [{ label: "Start", command: cmds.startCommand }] : []),
+    ],
+  };
+}

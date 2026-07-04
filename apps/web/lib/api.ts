@@ -65,6 +65,8 @@ export const api = {
     req<Record<string, { monthlyLowUsd: number; monthlyHighUsd: number }>>("/estimates"),
   getPlatformConfig: () => req<PlatformConfig>("/platform-config"),
   getMeta: () => req<Meta>("/meta"),
+  detectRepo: (body: { provider: string; repo: string; ref?: string; token?: string }) =>
+    req<DetectResult>("/detect/repo", { method: "POST", body: JSON.stringify(body) }),
   getMeters: () => req<FreeTierMeter[]>("/meters"),
   getCostSnapshots: () => req<CostSnapshot[]>("/costs/snapshots"),
   getCostAdvice: () =>
@@ -144,6 +146,32 @@ export interface EnvVar {
   key: string;
   isSecret: boolean;
   value: string;
+}
+
+export interface BuildStep {
+  label: string;
+  command?: string;
+}
+
+export interface BuildPlan {
+  strategy: "dockerfile" | "nixpacks" | "static";
+  title: string;
+  steps: BuildStep[];
+}
+
+export interface FrameworkDetection {
+  framework: string;
+  recommendedTarget: string;
+  buildStrategy: "dockerfile" | "nixpacks" | "static";
+  reason: string;
+}
+
+export interface DetectResult {
+  detection: FrameworkDetection;
+  plan: BuildPlan;
+  inspected: boolean;
+  note?: string;
+  files: string[];
 }
 
 export interface MetaTarget {

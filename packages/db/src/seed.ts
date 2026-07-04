@@ -22,10 +22,11 @@ async function seed(): Promise<void> {
 
   await db.insert(teams).values({ id: DEFAULT_TEAM_ID, name: "Default" }).onConflictDoNothing();
 
+  // Upsert so re-seeding syncs feature flags (e.g. newly enabled deploy targets) into an existing DB.
   await db
     .insert(platformConfig)
     .values({ id: 1, config: DEFAULT_PLATFORM_CONFIG })
-    .onConflictDoNothing();
+    .onConflictDoUpdate({ target: platformConfig.id, set: { config: DEFAULT_PLATFORM_CONFIG } });
 
   const [existing] = await db.select().from(invites).where(eq(invites.email, adminEmail));
   if (existing) {
