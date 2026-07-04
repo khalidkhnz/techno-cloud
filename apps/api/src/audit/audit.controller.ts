@@ -1,8 +1,9 @@
 import { Controller, Get, UseGuards } from "@nestjs/common";
-import { AdminGuard } from "../auth/auth.guard.js";
+import { OwnerGuard } from "../auth/auth.guard.js";
 import { AuditService } from "./audit.service.js";
 
-@UseGuards(AdminGuard)
+// Platform-wide (cross-team) audit view — restricted to owners, not every team admin.
+@UseGuards(OwnerGuard)
 @Controller("audit")
 export class AuditController {
   constructor(private readonly audit: AuditService) {}

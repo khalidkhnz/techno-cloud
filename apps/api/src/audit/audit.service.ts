@@ -32,6 +32,11 @@ export class AuditService {
     }
   }
 
+  /**
+   * Platform-wide (cross-team) list — intentionally NOT team-scoped, so it must stay behind the
+   * OwnerGuard (owner role only). audit_logs has no per-entry team; if per-team audit views are
+   * needed later, add a teamId column and filter here.
+   */
   async list(limit = 100) {
     return this.db.select().from(auditLogs).orderBy(desc(auditLogs.createdAt)).limit(limit);
   }

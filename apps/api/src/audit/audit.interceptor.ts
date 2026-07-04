@@ -15,16 +15,23 @@ export class AuditInterceptor implements NestInterceptor {
       Request & { authUser?: { email: string }; route?: { path?: string } }
     >();
 
-    if (!MUTATING.has(req.method) || req.path.startsWith("/api/auth")) {
+    // Only audit authenticated mutations. Public routes (webhooks, invite-accept, /api/auth)
+    // have no authUser and can carry secrets in the URL — never log those.
+    if (!MUTATING.has(req.method) || !req.authUser) {
       return next.handle();
     }
+
+    // Log the route TEMPLATE (e.g. "/projects/:projectId/deployments"), never the raw URL —
+    // the URL can contain tokens/secrets in the query string.
+    const routeTemplate = req.route?.path ?? "unknown";
 
     return next.handle().pipe(
       tap(() => {
         void this.audit.write({
-          action: `${req.method} ${req.route?.path ?? req.path}`,
-          target: req.originalUrl,
+          action: `${req.method} ${routeTemplate}`,
+          target: routeTemplate,
           actorEmail: req.authUser?.email,
+          // Route params (ids) only — no query string, no body.
           meta: { params: req.params },
         });
       }),

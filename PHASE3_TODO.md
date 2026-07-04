@@ -33,7 +33,7 @@ the Costs Module reconciles estimated vs actual spend per project and enforces b
 
 ## 4. Audit Logs
 - [x] `AuditLog` writes: **global interceptor** auto-audits every mutating request (deploy, rollback, config update, env/secret changes, invite, environment create/delete) with actor resolved from session
-- [~] Queryable via `GET /audit` (Admin) + `/admin/audit` UI; filters (actor/project/action/time) pending
+- [~] Queryable via `GET /audit` (**Owner**-gated, platform-wide) + `/admin/audit` UI; per-team scoping + filters (actor/project/action/time) pending
 - [ ] Retention policy config
 
 ## 5. WebSocket Live Logs (upgrade from polling)

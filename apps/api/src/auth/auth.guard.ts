@@ -25,30 +25,48 @@ export class AuthGuard implements CanActivate {
   }
 }
 
-/** Requires a session whose email maps to a domain user with an owner/admin team role. */
+/** Resolves the caller's team roles, throwing if unauthenticated / no domain account. */
+async function requireRoles(
+  db: Db,
+  req: AuthedRequest,
+  allowed: ReadonlyArray<"owner" | "admin" | "developer" | "viewer">,
+  label: string,
+): Promise<void> {
+  const result = await getSession(req);
+  if (!result?.session) throw new UnauthorizedException();
+
+  const [domainUser] = await db.select().from(users).where(eq(users.email, result.user.email));
+  if (!domainUser) throw new ForbiddenException("No domain account");
+
+  const memberships = await db
+    .select()
+    .from(teamMemberships)
+    .where(eq(teamMemberships.userId, domainUser.id));
+  if (!memberships.some((m) => allowed.includes(m.role))) {
+    throw new ForbiddenException(`${label} only`);
+  }
+  req.authUser = { id: result.user.id, email: result.user.email };
+}
+
+/** Requires an owner/admin team role. */
 @Injectable()
 export class AdminGuard implements CanActivate {
   constructor(@Inject(DRIZZLE) private readonly db: Db) {}
-
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
-    const req = ctx.switchToHttp().getRequest<AuthedRequest>();
-    const result = await getSession(req);
-    if (!result?.session) throw new UnauthorizedException();
+    await requireRoles(this.db, ctx.switchToHttp().getRequest<AuthedRequest>(), ["owner", "admin"], "Admin");
+    return true;
+  }
+}
 
-    const [domainUser] = await this.db
-      .select()
-      .from(users)
-      .where(eq(users.email, result.user.email));
-    if (!domainUser) throw new ForbiddenException("No domain account");
-
-    const memberships = await this.db
-      .select()
-      .from(teamMemberships)
-      .where(eq(teamMemberships.userId, domainUser.id));
-    const isAdmin = memberships.some((m) => m.role === "owner" || m.role === "admin");
-    if (!isAdmin) throw new ForbiddenException("Admin only");
-
-    req.authUser = { id: result.user.id, email: result.user.email };
+/**
+ * Requires the owner role. Used for platform-wide, cross-team surfaces (e.g. the audit log)
+ * that shouldn't be exposed to every team admin.
+ */
+@Injectable()
+export class OwnerGuard implements CanActivate {
+  constructor(@Inject(DRIZZLE) private readonly db: Db) {}
+  async canActivate(ctx: ExecutionContext): Promise<boolean> {
+    await requireRoles(this.db, ctx.switchToHttp().getRequest<AuthedRequest>(), ["owner"], "Owner");
     return true;
   }
 }
