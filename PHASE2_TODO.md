@@ -22,10 +22,10 @@ and the Costs Module shows per-app estimates + free-tier meters with alerts.
 - [ ] Static-build path (framework `build` → output dir → S3)
 
 ## 3. Deploy Targets (add remaining drivers)
-- [ ] `static-cdn`: S3 + CloudFront + OAC + subdomain/custom-domain wiring
-- [ ] `apprunner`: App Runner service from ECR image, autoscaling config (flag it as non-scale-to-zero in UI)
-- [ ] `ecs-fargate`: **arm64** task def + service + ALB target group + autoscaling (opt-in, cost-flagged)
-- [ ] Each implements full interface incl. `estimateCost()` and `streamLogs()`
+- [x] `static-cdn`: S3 (private) + CloudFront + OAC + bucket policy _(custom-domain wiring deferred)_
+- [x] `apprunner`: App Runner service from ECR image + ECR access role (boundary-scoped)
+- [x] `ecs-fargate`: **arm64** task def + service + ALB (default VPC) + exec role
+- [x] Each implements the full interface incl. `estimateCost()`; `streamLogs()` pending _(needs AWS)_ — all six registered in `createTargetRegistry()`
 - [~] Target picker shows **cost estimate per target** ✓ (via `/estimates`); recommended-default wiring (detection) pending
 
 ## 4. Environment & Secrets

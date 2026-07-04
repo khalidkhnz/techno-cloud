@@ -31,7 +31,7 @@ Module flags waste and suggests cheaper targets.
 - [ ] Tie quotas to Costs Module budgets
 
 ## 4. EC2 Deploy Target
-- [ ] `ec2` DeployTarget: ASG + Launch Template (**arm/Graviton default**) + ALB TG + health checks
+- [x] `ec2` DeployTarget: ASG + Launch Template (**arm/Graviton**, al2023 AMI) + user-data docker run + ECR read role _(ALB URL wiring deferred)_
 - [ ] Special workloads (GPU instance types, licensed AMIs)
 - [ ] Rolling deploy / instance refresh
 - [ ] `estimateCost()` + flag wiring (cost-flagged as always-on)
