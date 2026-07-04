@@ -39,10 +39,10 @@ and the Costs Module shows per-app estimates + free-tier meters with alerts.
 - [ ] Per-environment config, env vars, target settings; read in `DeployContext`
 
 ## 6. Rollback
-- [ ] Track immutable artifacts (image tags / static versions / Amplify job ids) per deployment
-- [ ] `rollback(toDeploymentId)` re-points target to prior artifact via Pulumi (no rebuild)
-- [ ] UI: deployment history + one-click rollback + confirm
-- [ ] Guard: no rollback to failed/destroyed deployments
+- [x] Track immutable artifact per deployment (`imageUri` = ECR:`<deploymentId>`; `rolledBackFrom` link)
+- [x] `rollback(toDeploymentId)` creates a new deployment reusing the prior artifact + enqueues a **deploy directly (no rebuild)** _(driver re-point lands with real `deploy()`)_
+- [x] UI: deployment history + one-click "rollback to this" on ready deployments
+- [x] Guard: only ready deployments; rejects failed/destroyed + missing-artifact
 
 ## 7. Costs Module v1 (`packages/costs`) — see COSTS_MODULE.md
 - [x] Rate card (`rates.ts`) seeded from `PRICING_REFERENCE.md` with `asOf` + source URLs + `FREE_TIER` allowances

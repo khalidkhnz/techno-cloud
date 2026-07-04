@@ -16,4 +16,12 @@ export class DeploymentsController {
   create(@Param("projectId") projectId: string) {
     return this.deployments.create(projectId);
   }
+
+  @Post(":deploymentId/rollback")
+  rollback(
+    @Param("projectId") projectId: string,
+    @Param("deploymentId") deploymentId: string,
+  ) {
+    return this.deployments.rollback(projectId, deploymentId);
+  }
 }

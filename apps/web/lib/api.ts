@@ -41,6 +41,10 @@ export const api = {
     req<Deployment[]>(`/projects/${projectId}/deployments`),
   createDeployment: (projectId: string) =>
     req<Deployment>(`/projects/${projectId}/deployments`, { method: "POST" }),
+  rollbackDeployment: (projectId: string, deploymentId: string) =>
+    req<Deployment>(`/projects/${projectId}/deployments/${deploymentId}/rollback`, {
+      method: "POST",
+    }),
   acceptInvite: (token: string) =>
     req<{ ok: boolean; email?: string }>(`/invites/accept?token=${encodeURIComponent(token)}`, {
       method: "POST",

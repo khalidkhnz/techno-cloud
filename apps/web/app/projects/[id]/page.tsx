@@ -86,6 +86,18 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
                 </a>
               </>
             )}
+            {d.state === "ready" && (
+              <>
+                {" "}
+                <button
+                  onClick={() =>
+                    api.rollbackDeployment(id, d.id).then(load).catch((e) => setError(String(e)))
+                  }
+                >
+                  rollback to this
+                </button>
+              </>
+            )}
           </li>
         ))}
         {deployments.length === 0 && <li style={{ color: "#888" }}>No deployments yet.</li>}

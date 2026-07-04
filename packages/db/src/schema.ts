@@ -138,6 +138,10 @@ export const deployments = pgTable("deployments", {
   commit: text("commit"),
   state: deploymentStateEnum("state").notNull().default("queued"),
   buildId: text("build_id"),
+  // Immutable built artifact (ECR image URI / static version) — enables rebuild-free rollback.
+  imageUri: text("image_uri"),
+  // Set when this deployment is a rollback, pointing at the deployment it restored.
+  rolledBackFrom: uuid("rolled_back_from"),
   targetRef: text("target_ref"),
   url: text("url"),
   estimatedCostUsd: text("estimated_cost_usd"),
