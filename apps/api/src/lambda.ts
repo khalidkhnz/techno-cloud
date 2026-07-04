@@ -15,6 +15,7 @@ let cached: Handler | undefined;
 async function bootstrap(): Promise<Handler> {
   const expressApp = express();
   const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp));
+  app.enableCors();
   await app.init();
   return serverlessExpress({ app: expressApp });
 }

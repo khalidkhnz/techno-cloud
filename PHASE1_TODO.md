@@ -74,10 +74,11 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 - [ ] Flags: `lambda`, `amplify`, `subdomains` ON; Fargate/EC2/customDomains/previews OFF
 
 ## 9. Web UI (`apps/web`, Next.js on Amplify)
+- [x] Typed API client (`lib/api.ts`) + CORS enabled on API
 - [ ] Auth pages: login (password + OTP), accept-invite, logout
-- [ ] Projects list + create (connect GitHub repo / upload zip)
-- [ ] Project detail: target picker (Lambda / Amplify), Deploy button
-- [ ] Deployment detail: status timeline + **polled log stream**
+- [~] Projects list + create (GitHub repo + target picker; zip upload pending)
+- [x] Project detail: target shown + **Deploy button**
+- [~] Deployment list with **5s status polling** ✓; live log stream pending
 - [ ] Admin: invite user
 - [ ] Deploy `apps/web` itself to Amplify (dogfood)
 
