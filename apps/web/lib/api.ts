@@ -65,6 +65,12 @@ export const api = {
     req<Record<string, { monthlyLowUsd: number; monthlyHighUsd: number }>>("/estimates"),
   getPlatformConfig: () => req<PlatformConfig>("/platform-config"),
   getMeters: () => req<FreeTierMeter[]>("/meters"),
+  getCostSnapshots: () => req<CostSnapshot[]>("/costs/snapshots"),
+  getBudgets: () => req<Budget[]>("/costs/budgets"),
+  createBudget: (body: { scope: string; refId?: string; thresholdUsd: number }) =>
+    req<Budget>("/costs/budgets", { method: "POST", body: JSON.stringify(body) }),
+  deleteBudget: (id: string) =>
+    req<{ ok: boolean }>(`/costs/budgets/${id}`, { method: "DELETE" }),
   getAudit: () => req<AuditLog[]>("/audit"),
   listTeams: () => req<{ id: string; name: string }[]>("/teams"),
   createTeam: (name: string) =>
@@ -165,6 +171,23 @@ export interface Domain {
   hostname: string;
   verifyToken: string;
   verified: boolean;
+}
+
+export interface CostSnapshot {
+  id: string;
+  scope: string;
+  refId: string | null;
+  actualUsd: string;
+  period: string;
+  createdAt: string;
+}
+
+export interface Budget {
+  id: string;
+  scope: string;
+  refId: string | null;
+  thresholdUsd: string;
+  enabled: boolean;
 }
 
 export interface FreeTierMeter {

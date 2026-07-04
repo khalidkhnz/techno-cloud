@@ -64,6 +64,13 @@
       "when": 1783199770490,
       "tag": "0008_plain_orphan",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1783200778991,
+      "tag": "0009_slippery_hellcat",
+      "breakpoints": true
     }
   ]
 }

@@ -42,9 +42,9 @@ the Costs Module reconciles estimated vs actual spend per project and enforces b
 - [ ] Fallback to polling if WS unavailable
 
 ## 6. Costs Module v2 — see COSTS_MODULE.md
-- [ ] **Cost Explorer** reconciliation (`GetCostAndUsage` grouped by `td:*` tags; cache daily — $0.01/call)
-- [ ] Estimated vs actual per project/env/deployment (`CostSnapshot`)
-- [ ] **Budgets**: thresholds per scope + AWS Budgets/SNS backstop
+- [x] **Cost Explorer** reconciliation — `getCostByProject` (`GetCostAndUsage` grouped by `td:project`); daily `scheduled/cost-snapshot` poller stores `CostSnapshot`s (cached daily)
+- [~] Estimated vs actual — actuals per project + global stored; estimated column present; per-env/deployment attribution pending
+- [x] **Budgets**: thresholds per scope (CRUD API + `/costs` UI); breach → admin email from the poller
 - [ ] Optional CUR → S3 → Athena for line-item detail
 - [ ] Neon + Amplify actuals via their APIs; window-expiry warnings (12-mo / free-plan)
 

@@ -125,6 +125,7 @@ const scheduled: Record<string, { handler: string; rate: string }> = {
   alerts: { handler: "scheduled/alerts.handler", rate: "rate(1 hour)" },
   reaper: { handler: "scheduled/reaper.handler", rate: "rate(1 hour)" },
   drift: { handler: "scheduled/drift.handler", rate: "rate(1 day)" },
+  "cost-snapshot": { handler: "scheduled/cost-snapshot.handler", rate: "rate(1 day)" },
 };
 
 const scheduledFns = Object.entries(scheduled).map(([name, s]) => fn(name, s.handler, { timeout: 120 }));

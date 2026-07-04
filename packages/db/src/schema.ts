@@ -195,6 +195,26 @@ export const auditLogs = pgTable("audit_logs", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Cost reconciliation (Cost Explorer actuals) + budgets.
+export const costSnapshots = pgTable("cost_snapshots", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  scope: text("scope").notNull(), // "project" | "global"
+  refId: text("ref_id"), // projectId, or null for global
+  estimatedUsd: text("estimated_usd"),
+  actualUsd: text("actual_usd").notNull(),
+  period: text("period").notNull(), // e.g. "2026-07"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const budgets = pgTable("budgets", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  scope: text("scope").notNull(), // "project" | "global"
+  refId: text("ref_id"),
+  thresholdUsd: text("threshold_usd").notNull(),
+  enabled: boolean("enabled").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Costs Module tables (COSTS_MODULE.md) land in Phase 2.
 export const freeTierMeters = pgTable("free_tier_meters", {
   id: uuid("id").defaultRandom().primaryKey(),
