@@ -49,6 +49,19 @@ export const lockTable = new aws.dynamodb.Table("stack-locks", {
   tags,
 });
 
+export const wsConnectionsTable = new aws.dynamodb.Table("ws-connections", {
+  name: `${prefix}-ws-connections`,
+  billingMode: "PAY_PER_REQUEST",
+  hashKey: "deploymentId",
+  rangeKey: "connectionId",
+  attributes: [
+    { name: "deploymentId", type: "S" },
+    { name: "connectionId", type: "S" },
+  ],
+  ttl: { attributeName: "expiresAt", enabled: true },
+  tags,
+});
+
 export const idempotencyTable = new aws.dynamodb.Table("idempotency", {
   name: `${prefix}-idempotency`,
   billingMode: "PAY_PER_REQUEST",

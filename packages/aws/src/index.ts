@@ -5,3 +5,4 @@ export * from "./ssm.js";
 export * from "./logs.js";
 export * from "./metrics.js";
 export * from "./cost-explorer.js";
+export * from "./ws.js";

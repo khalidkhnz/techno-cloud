@@ -3,7 +3,7 @@ import * as pulumi from "@pulumi/pulumi";
 import { baseDomain, prefix, tags } from "./config.js";
 import { appBoundary, lambdaRole } from "./iam.js";
 import { buildQueue, deployQueue } from "./queues.js";
-import { idempotencyTable, lockTable, stateBucket } from "./storage.js";
+import { idempotencyTable, lockTable, stateBucket, wsConnectionsTable } from "./storage.js";
 import { repository } from "./registry.js";
 import { buildProject } from "./build.js";
 import { deployProject } from "./deploy.js";
@@ -35,6 +35,7 @@ const commonEnv: Record<string, pulumi.Input<string>> = {
   SSM_PREFIX: `/${prefix}`,
   STACK_LOCK_TABLE: lockTable.name,
   IDEMPOTENCY_TABLE: idempotencyTable.name,
+  WS_CONNECTIONS_TABLE: wsConnectionsTable.name,
   BUILD_QUEUE_URL: buildQueue.url,
   DEPLOY_QUEUE_URL: deployQueue.url,
   BUILD_PROJECT_NAME: buildProject.name,
@@ -150,6 +151,39 @@ Object.entries(scheduled).forEach(([name, s], i) => {
     target: { arn: scheduledFns[i]!.arn, roleArn: schedulerRole.arn },
   });
 });
+
+// --- WebSocket API (live log streaming) ---
+const wsLambda = fn("ws", "ws/ws.handler.handler", { timeout: 15 });
+const wsApi = new aws.apigatewayv2.Api("ws", {
+  name: `${prefix}-ws`,
+  protocolType: "WEBSOCKET",
+  routeSelectionExpression: "$request.body.action",
+  tags,
+});
+const wsIntegration = new aws.apigatewayv2.Integration("ws", {
+  apiId: wsApi.id,
+  integrationType: "AWS_PROXY",
+  integrationUri: wsLambda.invokeArn,
+});
+for (const [rk, id] of [
+  ["$connect", "connect"],
+  ["$disconnect", "disconnect"],
+  ["subscribe", "subscribe"],
+] as const) {
+  new aws.apigatewayv2.Route(`ws-${id}`, {
+    apiId: wsApi.id,
+    routeKey: rk,
+    target: pulumi.interpolate`integrations/${wsIntegration.id}`,
+  });
+}
+const wsStage = new aws.apigatewayv2.Stage("ws", { apiId: wsApi.id, name: "prod", autoDeploy: true });
+new aws.lambda.Permission("ws-invoke", {
+  action: "lambda:InvokeFunction",
+  function: wsLambda.name,
+  principal: "apigateway.amazonaws.com",
+  sourceArn: pulumi.interpolate`${wsApi.executionArn}/*`,
+});
+export const wsEndpoint = wsStage.invokeUrl;
 
 // --- Frontend (Amplify) ---
 export const web =

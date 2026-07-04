@@ -37,9 +37,9 @@ the Costs Module reconciles estimated vs actual spend per project and enforces b
 - [ ] Retention policy config
 
 ## 5. WebSocket Live Logs (upgrade from polling)
-- [ ] **API Gateway WebSocket API** → Lambda → CloudWatch tail (note: WS free tier is 12-month only)
-- [ ] UI switches from polling to WebSocket stream for build + runtime logs
-- [ ] Fallback to polling if WS unavailable
+- [~] **API Gateway WebSocket API** + Lambda handler ($connect/$disconnect/subscribe) + connections DynamoDB (TTL) + `postToConnection` — authored/typechecks; CloudWatch→WS log pusher pending
+- [~] UI **live log streaming** (auto-poll every 3s now; WebSocket client upgrade pending)
+- [x] Polling fallback (UI auto-polls; soft-fails)
 
 ## 6. Costs Module v2 — see COSTS_MODULE.md
 - [x] **Cost Explorer** reconciliation — `getCostByProject` (`GetCostAndUsage` grouped by `td:project`); daily `scheduled/cost-snapshot` poller stores `CostSnapshot`s (cached daily)

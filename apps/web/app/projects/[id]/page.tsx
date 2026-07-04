@@ -27,6 +27,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
   const [error, setError] = useState<string | null>(null);
 
   const [logs, setLogs] = useState<{ timestamp: number; message: string }[] | null>(null);
+  const [logDep, setLogDep] = useState<string | null>(null);
 
   const [doms, setDoms] = useState<Domain[]>([]);
   const [dom, setDom] = useState("");
@@ -49,14 +50,25 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
     }
   }
 
-  async function showLogs(deploymentId: string) {
-    setError(null);
-    try {
-      setLogs(await api.getLogs(id, deploymentId, "build"));
-    } catch (e) {
-      setError(String(e));
+  // Live logs: poll every 3s while open (WebSocket fallback).
+  useEffect(() => {
+    if (!logDep) {
+      setLogs(null);
+      return;
     }
-  }
+    let active = true;
+    const poll = () =>
+      api
+        .getLogs(id, logDep, "build")
+        .then((l) => active && setLogs(l))
+        .catch(() => {});
+    poll();
+    const t = setInterval(poll, 3000);
+    return () => {
+      active = false;
+      clearInterval(t);
+    };
+  }, [logDep, id]);
 
   const load = () => {
     api.getProject(id).then(setProject).catch((e) => setError(String(e)));
@@ -137,8 +149,11 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
                 {d.url}
               </a>
             )}
-            <button className="btn btn-secondary ml-auto" onClick={() => showLogs(d.id)}>
-              Logs
+            <button
+              className="btn btn-secondary ml-auto"
+              onClick={() => setLogDep(logDep === d.id ? null : d.id)}
+            >
+              {logDep === d.id ? "Stop logs" : "Live logs"}
             </button>
             {d.state === "ready" && (
               <button
@@ -154,10 +169,15 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
         ))}
         {deployments.length === 0 && <li className="muted px-4 py-3">No deployments yet.</li>}
       </ul>
-      {logs && (
-        <pre className="mt-2 max-h-72 overflow-auto rounded-lg border border-neutral-200 bg-neutral-900 p-3 text-xs leading-relaxed text-neutral-100">
-          {logs.length ? logs.map((l, i) => <div key={i}>{l.message}</div>) : "No logs yet."}
-        </pre>
+      {logDep && (
+        <>
+          <p className="muted mt-2 flex items-center gap-1">
+            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-green-500" /> live · polling every 3s
+          </p>
+          <pre className="mt-1 max-h-72 overflow-auto rounded-lg border border-neutral-200 bg-neutral-900 p-3 text-xs leading-relaxed text-neutral-100">
+            {logs && logs.length ? logs.map((l, i) => <div key={i}>{l.message}</div>) : "Waiting for logs…"}
+          </pre>
+        </>
       )}
 
       <h2 className="mt-6">Environments</h2>

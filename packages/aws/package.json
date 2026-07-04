@@ -17,6 +17,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
+    "@aws-sdk/client-apigatewaymanagementapi": "^3.670.0",
     "@aws-sdk/client-cloudwatch": "^3.670.0",
     "@aws-sdk/client-cloudwatch-logs": "^3.670.0",
     "@aws-sdk/client-cost-explorer": "^3.670.0",
