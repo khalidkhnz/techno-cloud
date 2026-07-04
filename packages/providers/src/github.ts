@@ -7,7 +7,7 @@ import type {
   SourceRef,
   WebhookHeaders,
 } from "@techno-deployer/core";
-import { firstHeader } from "./util.js";
+import { firstHeader, hmacSha256Hex, safeEqual } from "./util.js";
 
 interface GithubPushBody {
   ref?: string;
@@ -29,6 +29,12 @@ export class GithubProvider implements SourceProvider {
 
   async reportStatus(_commit: string, _state: CommitState): Promise<void> {
     // TODO(phase2): POST commit status via the GitHub API.
+  }
+
+  verifySignature(headers: WebhookHeaders, rawBody: Uint8Array, secret: string): boolean {
+    const sig = firstHeader(headers, "x-hub-signature-256");
+    if (!sig || !secret) return false;
+    return safeEqual(sig, hmacSha256Hex(rawBody, secret));
   }
 
   parseWebhook(headers: WebhookHeaders, body: unknown): PushEvent | null {

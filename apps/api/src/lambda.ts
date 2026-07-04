@@ -23,7 +23,13 @@ async function bootstrap(): Promise<Handler> {
     bodyParser: false,
   });
   app.enableCors({ origin: env.APP_ORIGIN ?? true, credentials: true });
-  expressApp.use(express.json());
+  expressApp.use(
+    express.json({
+      verify: (req, _res, buf) => {
+        (req as express.Request & { rawBody?: Buffer }).rawBody = buf;
+      },
+    }),
+  );
   await app.init();
   return serverlessExpress({ app: expressApp });
 }

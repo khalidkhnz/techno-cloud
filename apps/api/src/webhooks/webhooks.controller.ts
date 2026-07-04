@@ -1,8 +1,9 @@
-import { Body, Controller, Headers, Param, Post } from "@nestjs/common";
+import { Body, Controller, Headers, Param, Post, Req } from "@nestjs/common";
+import type { Request } from "express";
 import type { WebhookHeaders } from "@techno-deployer/core";
 import { WebhooksService } from "./webhooks.service.js";
 
-// Public endpoint — called by the git provider. Signature verification is a TODO (see service).
+// Public endpoint — authenticated by per-provider webhook signature (verified in the service).
 @Controller("webhooks")
 export class WebhooksController {
   constructor(private readonly webhooks: WebhooksService) {}
@@ -11,8 +12,10 @@ export class WebhooksController {
   handle(
     @Param("provider") provider: string,
     @Headers() headers: WebhookHeaders,
+    @Req() req: Request & { rawBody?: Buffer },
     @Body() body: unknown,
   ) {
-    return this.webhooks.handle(provider, headers, body);
+    const rawBody = req.rawBody ?? Buffer.from(JSON.stringify(body ?? {}));
+    return this.webhooks.handle(provider, headers, rawBody, body);
   }
 }

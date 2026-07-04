@@ -13,7 +13,7 @@ and the Costs Module shows per-app estimates + free-tier meters with alerts.
 ## 1. Source Providers (complete the set)
 - [~] `gitlab`: webhook parse + token clone URL (configurable self-hosted host) ✓; registerWebhook + commit-status API pending
 - [~] `bitbucket`: webhook parse + token clone URL ✓; registerWebhook + build-status API pending
-- [~] Provider-agnostic webhook router: `POST /webhooks/:provider` → parse → match project by repo → enqueue deploy ✓; signature verification + per-provider creds in Parameter Store pending
+- [x] Provider-agnostic webhook router: `POST /webhooks/:provider` → **verify signature (fail-closed HMAC/token over raw body)** → parse → match by **provider + repo + ref** → enqueue deploy of the **exact commit**; per-provider creds still env-based (Parameter Store + rate-limit pending)
 
 ## 2. Framework Detection
 - [x] Detector: inspect Dockerfile + `package.json`/framework signatures (`detectFramework` in `packages/core`)

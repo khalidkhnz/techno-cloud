@@ -24,6 +24,10 @@ export class ZipProvider implements SourceProvider {
     // No commit status for zip uploads.
   }
 
+  verifySignature(_headers: WebhookHeaders, _rawBody: Uint8Array, _secret: string): boolean {
+    return false; // zip uploads are not webhook-driven
+  }
+
   parseWebhook(_headers: WebhookHeaders, _body: unknown): PushEvent | null {
     return null; // zip uploads are not webhook-driven
   }

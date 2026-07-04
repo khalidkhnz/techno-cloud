@@ -7,6 +7,7 @@ import type {
   SourceRef,
   WebhookHeaders,
 } from "@techno-deployer/core";
+import { firstHeader, safeEqual } from "./util.js";
 
 interface GitlabPushBody {
   object_kind?: string;
@@ -30,6 +31,11 @@ export class GitlabProvider implements SourceProvider {
 
   async reportStatus(_commit: string, _state: CommitState): Promise<void> {
     // TODO(phase2): POST commit status via the GitLab API.
+  }
+
+  verifySignature(headers: WebhookHeaders, _rawBody: Uint8Array, secret: string): boolean {
+    const token = firstHeader(headers, "x-gitlab-token");
+    return Boolean(token) && Boolean(secret) && safeEqual(token as string, secret);
   }
 
   parseWebhook(_headers: WebhookHeaders, body: unknown): PushEvent | null {

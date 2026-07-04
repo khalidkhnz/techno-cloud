@@ -16,6 +16,11 @@ export interface SourceProvider {
   fetchSource(ref: SourceRef): Promise<SourceBundle>;
   /** Report build/deploy status back to the provider (commit check). No-op for zip. */
   reportStatus(commit: string, state: CommitState): Promise<void>;
+  /**
+   * Verify the webhook signature/token against the configured secret using the RAW request
+   * body (JSON re-serialization breaks HMAC). Fail-closed: returns false when unverifiable.
+   */
+  verifySignature(headers: WebhookHeaders, rawBody: Uint8Array, secret: string): boolean;
   /** Parse an incoming webhook into a normalized push event (null if not a push we deploy). */
   parseWebhook(headers: WebhookHeaders, body: unknown): PushEvent | null;
   /** Build an authenticated clone URL (token optional for public repos). */

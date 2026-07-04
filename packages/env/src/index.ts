@@ -35,6 +35,11 @@ export const env = createEnv({
     BETTER_AUTH_URL: z.string().url().optional(),
     APP_ORIGIN: z.string().url().optional(),
 
+    // Webhook signing secrets (required per provider to accept its webhooks; fail-closed if unset)
+    GITHUB_WEBHOOK_SECRET: z.string().optional(),
+    GITLAB_WEBHOOK_SECRET: z.string().optional(),
+    BITBUCKET_WEBHOOK_SECRET: z.string().optional(),
+
     // Email (Nodemailer / SES)
     SMTP_HOST: z.string().optional(),
     SMTP_PORT: z.coerce.number().default(587),

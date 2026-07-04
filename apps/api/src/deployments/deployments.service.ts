@@ -22,7 +22,7 @@ export class DeploymentsService {
   }
 
   /** Creates a queued deployment for a project and enqueues a build job. */
-  async create(projectId: string) {
+  async create(projectId: string, commit?: string) {
     const [project] = await this.db.select().from(projects).where(eq(projects.id, projectId));
     if (!project) throw new NotFoundException(`Project ${projectId} not found`);
 
@@ -30,7 +30,7 @@ export class DeploymentsService {
 
     const [deployment] = await this.db
       .insert(deployments)
-      .values({ projectId, environmentId, state: "queued" })
+      .values({ projectId, environmentId, state: "queued", commit: commit ?? null })
       .returning();
     if (!deployment) throw new Error("Failed to create deployment");
 

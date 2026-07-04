@@ -14,7 +14,14 @@ async function bootstrap(): Promise<void> {
   const expressApp = app.getHttpAdapter().getInstance() as express.Express;
   // Better Auth needs the raw body — mount it BEFORE the JSON parser.
   expressApp.all("/api/auth/*", toNodeHandler(auth));
-  expressApp.use(express.json());
+  // Capture the raw body so webhook HMAC signatures can be verified over exact bytes.
+  expressApp.use(
+    express.json({
+      verify: (req, _res, buf) => {
+        (req as express.Request & { rawBody?: Buffer }).rawBody = buf;
+      },
+    }),
+  );
 
   await app.listen(env.PORT);
   // eslint-disable-next-line no-console
