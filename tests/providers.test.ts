@@ -47,6 +47,11 @@ describe("GitlabProvider", () => {
     expect(gl.verifySignature({ "x-gitlab-token": "s" }, new Uint8Array(), "s")).toBe(true);
     expect(gl.verifySignature({ "x-gitlab-token": "s" }, new Uint8Array(), "x")).toBe(false);
   });
+
+  it("builds clone URLs with and without a token", () => {
+    expect(gl.cloneUrl("grp/proj", "tok")).toBe("https://oauth2:tok@gitlab.com/grp/proj.git");
+    expect(gl.cloneUrl("grp/proj")).toBe("https://gitlab.com/grp/proj.git");
+  });
 });
 
 describe("BitbucketProvider", () => {
@@ -57,6 +62,10 @@ describe("BitbucketProvider", () => {
       { push: { changes: [{ new: { name: "main", type: "branch", target: { hash: "h" } } }] }, repository: { full_name: "t/r" } },
     );
     expect(event).toEqual({ provider: "bitbucket", repo: "t/r", ref: "main", commit: "h" });
+  });
+
+  it("builds an authenticated clone URL", () => {
+    expect(bb.cloneUrl("t/r", "tok")).toBe("https://x-token-auth:tok@bitbucket.org/t/r.git");
   });
 });
 

@@ -14,6 +14,7 @@ import { buildQueue, buildDlq, deployQueue, deployDlq } from "./queues.js";
 import { repository } from "./registry.js";
 import { certificate, zone } from "./dns.js";
 import { codeBuildRole, lambdaRole } from "./iam.js";
+import { buildProject } from "./build.js";
 import { baseDomain } from "./config.js";
 
 // --- Stack outputs (consumed by the app via Parameter Store / env) ---
@@ -32,6 +33,7 @@ export const deployQueueUrl = deployQueue.url;
 export const deployDlqUrl = deployDlq.url;
 
 export const ecrRepositoryUrl = repository.repositoryUrl;
+export const buildProjectName = buildProject.name;
 
 export const hostedZoneId = zone.zoneId;
 export const nameServers = zone.nameServers;

@@ -54,8 +54,8 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 - [ ] `fetchSource()` writes normalized bundle to S3 _(clone/unzip runs in CodeBuild)_
 
 ## 6. Build Pipeline (CodeBuild)
-- [ ] Provision reusable CodeBuild project (Pulumi) with ECR push perms, arm compute _(SECURITY: reject `sourceLocationOverride`/`buildspecOverride` at StartBuild — validate inputs in the deploy Lambda before calling)_
-- [ ] Build detector: Dockerfile present? use it : generate via **Nixpacks** _(runs inside CodeBuild buildspec)_
+- [x] Provision reusable CodeBuild project (Pulumi, arm64, privileged for docker, ECR via role, CloudWatch logs) — `infra/build.ts`; StartBuild passes only PLAINTEXT env overrides (no source/buildspec override)
+- [x] Build detector in buildspec: Dockerfile present → `docker build` : **Nixpacks**; push to ECR tagged by deploymentId; worker computes CLONE_URL + SOURCE_REF via the source provider
 - [x] Build worker Lambda triggers CodeBuild; tracks status (saves buildId, sets building state)
 - [ ] Stream CodeBuild/CloudWatch logs → `BuildLog` + expose via polling endpoint
 - [~] Handle build failures cleanly _(worker marks `failed`; CodeBuild-completion → deploy bridge pending)_
