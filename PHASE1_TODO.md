@@ -44,14 +44,14 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 - [x] Bootstrap NestJS + **Lambda arm64 handler** (serverless-express adapter, cached per container); health route _(Function URL wiring in §10)_
 - [x] Config (T3 Env) + **Drizzle module** (global DI provider)
 - [x] **SQS**: producer + **build/deploy worker Lambda handlers** ✓ (build→CodeBuild+state; deploy→driver under stack lock+state); queues §10 _(event-source mappings wired at deploy)_
-- [~] Modules: `projects` ✓, `deployments` ✓, `platform-config` ✓, `invites` ✓, `auth` ✓ (Better Auth + guards); remaining: `webhooks`, `logs`
+- [~] Modules: `projects` ✓, `deployments` ✓, `platform-config` ✓, `invites` ✓, `auth` ✓, `webhooks` ✓, `env-vars`/`detect`/`estimates` ✓; remaining: `logs`
 - [~] Endpoints: project CRUD ✓, platform config ✓, **create deployment (trigger)** ✓, list deployments ✓; remaining: poll logs
 - [x] **DynamoDB stack-lock** helper (`project:env`) via conditional writes (`withLock` in `packages/aws`)
 
 ## 5. Source Providers (Phase 1 subset)
-- [ ] `github`: GitHub App (webhook + clone via installation token), commit status
+- [~] `github`: webhook parse + token clone URL ✓ (all 4 providers structured in `packages/providers`); GitHub App install + commit status pending
 - [ ] `zip`: signed S3 upload → unzip → SourceBundle
-- [ ] `fetchSource()` writes normalized bundle to S3
+- [ ] `fetchSource()` writes normalized bundle to S3 _(clone/unzip runs in CodeBuild)_
 
 ## 6. Build Pipeline (CodeBuild)
 - [ ] Provision reusable CodeBuild project (Pulumi) with ECR push perms, arm compute _(SECURITY: reject `sourceLocationOverride`/`buildspecOverride` at StartBuild — validate inputs in the deploy Lambda before calling)_

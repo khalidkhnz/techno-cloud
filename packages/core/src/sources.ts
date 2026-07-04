@@ -4,7 +4,9 @@
  */
 
 import type { SourceProviderKind } from "./config.js";
-import type { CommitState, Project, SourceBundle, SourceRef } from "./domain.js";
+import type { CommitState, Project, PushEvent, SourceBundle, SourceRef } from "./domain.js";
+
+export type WebhookHeaders = Record<string, string | string[] | undefined>;
 
 export interface SourceProvider {
   readonly kind: SourceProviderKind;
@@ -14,6 +16,10 @@ export interface SourceProvider {
   fetchSource(ref: SourceRef): Promise<SourceBundle>;
   /** Report build/deploy status back to the provider (commit check). No-op for zip. */
   reportStatus(commit: string, state: CommitState): Promise<void>;
+  /** Parse an incoming webhook into a normalized push event (null if not a push we deploy). */
+  parseWebhook(headers: WebhookHeaders, body: unknown): PushEvent | null;
+  /** Build an authenticated clone URL (token optional for public repos). */
+  cloneUrl(repo: string, token?: string): string;
 }
 
 export class SourceProviderRegistry {

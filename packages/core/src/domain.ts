@@ -65,3 +65,11 @@ export interface LogLine {
 }
 
 export type CommitState = "pending" | "success" | "failure";
+
+/** Normalized push event parsed from a provider webhook. */
+export interface PushEvent {
+  provider: SourceProviderKind;
+  repo: string; // owner/name (GitHub/Bitbucket) or group/project (GitLab)
+  ref: string; // branch name
+  commit: string; // commit sha
+}

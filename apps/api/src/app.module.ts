@@ -7,6 +7,7 @@ import { InvitesModule } from "./invites/invites.module.js";
 import { EstimatesModule } from "./estimates/estimates.module.js";
 import { EnvVarsModule } from "./env-vars/env-vars.module.js";
 import { DetectModule } from "./detect/detect.module.js";
+import { WebhooksModule } from "./webhooks/webhooks.module.js";
 import { PlatformConfigModule } from "./platform-config/platform-config.module.js";
 
 /**
@@ -22,6 +23,7 @@ import { PlatformConfigModule } from "./platform-config/platform-config.module.j
     EstimatesModule,
     EnvVarsModule,
     DetectModule,
+    WebhooksModule,
     PlatformConfigModule,
   ],
   controllers: [HealthController],
