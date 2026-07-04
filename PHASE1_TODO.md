@@ -42,10 +42,10 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 
 ## 4. Control Plane API (`apps/api`, NestJS on Lambda)
 - [x] Bootstrap NestJS + **Lambda arm64 handler** (serverless-express adapter, cached per container); health route _(Function URL wiring in §10)_
-- [ ] Config + Drizzle modules
-- [ ] **SQS** queues (`build`, `deploy`) + worker Lambda handlers
-- [ ] Modules: `auth`, `projects`, `deployments`, `webhooks`, `logs`
-- [ ] Endpoints: create/list project, trigger deploy, get deployment, **poll logs**
+- [x] Config (T3 Env) + **Drizzle module** (global DI provider)
+- [ ] **SQS** queues (`build`, `deploy`) + worker Lambda handlers _(queues provisioned in §10; handlers pending)_
+- [~] Modules: `projects` ✓, `platform-config` ✓ (flags CRUD); remaining: `auth`, `deployments`, `webhooks`, `logs`
+- [~] Endpoints: create/list/get project ✓, get/update platform config ✓; remaining: trigger deploy, get deployment, poll logs
 - [ ] **DynamoDB stack-lock** helper (`project:env`) via conditional writes
 
 ## 5. Source Providers (Phase 1 subset)
