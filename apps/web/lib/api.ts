@@ -40,4 +40,10 @@ export const api = {
     req<Deployment[]>(`/projects/${projectId}/deployments`),
   createDeployment: (projectId: string) =>
     req<Deployment>(`/projects/${projectId}/deployments`, { method: "POST" }),
+  acceptInvite: (token: string) =>
+    req<{ ok: boolean; email?: string }>(`/invites/accept?token=${encodeURIComponent(token)}`, {
+      method: "POST",
+    }),
+  createInvite: (body: { email: string; teamId: string; role?: string }) =>
+    req<{ id: string; email: string }>("/invites", { method: "POST", body: JSON.stringify(body) }),
 };

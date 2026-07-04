@@ -2,11 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { api, type Project } from "../../lib/api";
+import { signOut, useSession } from "../../lib/auth-client";
 
 const TARGETS = ["lambda", "amplify", "static-cdn", "apprunner", "ecs-fargate", "ec2"];
 
 export default function ProjectsPage() {
+  const router = useRouter();
+  const { data: session, isPending } = useSession();
   const [projects, setProjects] = useState<Project[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -20,8 +24,12 @@ export default function ProjectsPage() {
       .catch((e) => setError(String(e)));
 
   useEffect(() => {
-    load();
-  }, []);
+    if (!isPending && !session) {
+      router.replace("/login");
+      return;
+    }
+    if (session) load();
+  }, [isPending, session, router]);
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
@@ -41,9 +49,17 @@ export default function ProjectsPage() {
     }
   }
 
+  if (isPending || !session) return null;
+
   return (
     <main style={{ fontFamily: "system-ui", padding: "2rem", maxWidth: 760 }}>
-      <h1>Projects</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h1>Projects</h1>
+        <span style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <Link href="/admin/invite">Invite user</Link>
+          <button onClick={() => signOut().then(() => router.replace("/login"))}>Sign out</button>
+        </span>
+      </div>
 
       <form onSubmit={create} style={{ display: "grid", gap: 8, margin: "1rem 0", maxWidth: 420 }}>
         <input placeholder="Project name" value={name} onChange={(e) => setName(e.target.value)} required />

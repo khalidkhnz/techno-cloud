@@ -75,11 +75,11 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 
 ## 9. Web UI (`apps/web`, Next.js on Amplify)
 - [x] Typed API client (`lib/api.ts`) + CORS enabled on API
-- [ ] Auth pages: login (password + OTP), accept-invite, logout
+- [x] Auth pages: **login (OTP)**, **accept-invite**, **logout**, session guard on /projects (Better Auth client wrappers)
 - [~] Projects list + create (GitHub repo + target picker; zip upload pending)
 - [x] Project detail: target shown + **Deploy button**
 - [~] Deployment list with **5s status polling** ✓; live log stream pending
-- [ ] Admin: invite user
+- [x] Admin: invite user (page → POST /invites, emails accept link)
 - [ ] Deploy `apps/web` itself to Amplify (dogfood)
 
 ## 10. Platform Infra (`infra/`, dogfood — all serverless)

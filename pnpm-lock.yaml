@@ -96,6 +96,9 @@ importers:
       '@techno-deployer/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      better-auth:
+        specifier: ^1.2.0
+        version: 1.6.23(@opentelemetry/api@1.9.1)(next@15.5.20(@opentelemetry/api@1.9.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       next:
         specifier: ^15.0.0
         version: 15.5.20(@opentelemetry/api@1.9.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
