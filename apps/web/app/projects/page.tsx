@@ -16,6 +16,9 @@ export default function ProjectsPage() {
   const [name, setName] = useState("");
   const [target, setTarget] = useState("lambda");
   const [repo, setRepo] = useState("");
+  const [estimates, setEstimates] = useState<
+    Record<string, { monthlyLowUsd: number; monthlyHighUsd: number }>
+  >({});
 
   const load = () =>
     api
@@ -28,8 +31,13 @@ export default function ProjectsPage() {
       router.replace("/login");
       return;
     }
-    if (session) load();
+    if (session) {
+      load();
+      api.getEstimates().then(setEstimates).catch(() => {});
+    }
   }, [isPending, session, router]);
+
+  const est = estimates[target];
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
@@ -71,6 +79,11 @@ export default function ProjectsPage() {
             </option>
           ))}
         </select>
+        {est && (
+          <small style={{ color: "#888" }}>
+            Est. ~${est.monthlyLowUsd}–${est.monthlyHighUsd}/mo
+          </small>
+        )}
         <button type="submit">Create project</button>
       </form>
 

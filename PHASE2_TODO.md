@@ -16,8 +16,8 @@ and the Costs Module shows per-app estimates + free-tier meters with alerts.
 - [ ] Provider-agnostic webhook router; per-provider creds encrypted in Parameter Store, admin-configurable
 
 ## 2. Framework Detection
-- [ ] Detector: inspect repo for Dockerfile, `package.json`, framework signatures
-- [ ] Recommend default target: Next.js/SSR → **Amplify**, static export → **static-cdn**, API → **Lambda**, long-running → Fargate
+- [x] Detector: inspect Dockerfile + `package.json`/framework signatures (`detectFramework` in `packages/core`)
+- [x] Recommend default target: next→amplify, vite/CRA/static→static-cdn, express/fastify/nest→lambda, docker→lambda, fallback→lambda (+ buildStrategy dockerfile/nixpacks/static)
 - [ ] Nixpacks build/start overrides in project settings
 - [ ] Static-build path (framework `build` → output dir → S3)
 
@@ -26,7 +26,7 @@ and the Costs Module shows per-app estimates + free-tier meters with alerts.
 - [ ] `apprunner`: App Runner service from ECR image, autoscaling config (flag it as non-scale-to-zero in UI)
 - [ ] `ecs-fargate`: **arm64** task def + service + ALB target group + autoscaling (opt-in, cost-flagged)
 - [ ] Each implements full interface incl. `estimateCost()` and `streamLogs()`
-- [ ] Target picker shows recommended default + **cost estimate per target** (from Costs Module)
+- [~] Target picker shows **cost estimate per target** ✓ (via `/estimates`); recommended-default wiring (detection) pending
 
 ## 4. Environment & Secrets
 - [ ] `EnvVar`, `Secret` scoped by project + environment (prod/preview/dev)
@@ -46,7 +46,7 @@ and the Costs Module shows per-app estimates + free-tier meters with alerts.
 
 ## 7. Costs Module v1 (`packages/costs`) — see COSTS_MODULE.md
 - [x] Rate card (`rates.ts`) seeded from `PRICING_REFERENCE.md` with `asOf` + source URLs + `FREE_TIER` allowances
-- [~] `estimateCost()` implemented per target _(done: lambda/fargate/ec2 estimators, wired into lambda+amplify drivers; remaining: static-cdn/apprunner + surface in UI)_
+- [x] `estimateCost()` implemented for **all six targets** (lambda/fargate/ec2/static-cdn/apprunner/amplify) + surfaced in UI target picker via `/estimates` endpoint
 - [ ] Resource tagging in Pulumi: `td:project/team/env/deploymentId/target`
 - [ ] **Free-tier meters** from CloudWatch + Neon API (Lambda, SQS, DynamoDB, CodeBuild, CloudWatch, CloudFront, Amplify, Neon)
 - [ ] Alerts at 80/95/100% via EventBridge Scheduler → Lambda → Nodemailer

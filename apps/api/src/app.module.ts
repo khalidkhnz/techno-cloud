@@ -4,6 +4,7 @@ import { DrizzleModule } from "./drizzle/drizzle.module.js";
 import { ProjectsModule } from "./projects/projects.module.js";
 import { DeploymentsModule } from "./deployments/deployments.module.js";
 import { InvitesModule } from "./invites/invites.module.js";
+import { EstimatesModule } from "./estimates/estimates.module.js";
 import { PlatformConfigModule } from "./platform-config/platform-config.module.js";
 
 /**
@@ -16,6 +17,7 @@ import { PlatformConfigModule } from "./platform-config/platform-config.module.j
     ProjectsModule,
     DeploymentsModule,
     InvitesModule,
+    EstimatesModule,
     PlatformConfigModule,
   ],
   controllers: [HealthController],

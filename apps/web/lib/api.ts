@@ -47,4 +47,6 @@ export const api = {
     }),
   createInvite: (body: { email: string; teamId: string; role?: string }) =>
     req<{ id: string; email: string }>("/invites", { method: "POST", body: JSON.stringify(body) }),
+  getEstimates: () =>
+    req<Record<string, { monthlyLowUsd: number; monthlyHighUsd: number }>>("/estimates"),
 };

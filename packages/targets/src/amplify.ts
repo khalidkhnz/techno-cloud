@@ -12,7 +12,7 @@ import type {
   LogLine,
   TargetConfig,
 } from "@techno-deployer/core";
-import { AS_OF } from "@techno-deployer/costs";
+import { estimateAmplify } from "@techno-deployer/costs";
 
 export class AmplifyTarget implements DeployTarget {
   readonly kind = "amplify" as const;
@@ -39,14 +39,7 @@ export class AmplifyTarget implements DeployTarget {
     throw new Error("AmplifyTarget.destroy not implemented");
   }
 
-  estimateCost(_config: TargetConfig) {
-    // Amplify is 12-month free then usage-based; low-traffic internal apps ≈ $0–5/mo.
-    return {
-      monthlyLowUsd: 0,
-      monthlyHighUsd: 5,
-      breakdown: [],
-      freeTierApplied: true,
-      ratesAsOf: AS_OF,
-    };
+  estimateCost(config: TargetConfig) {
+    return estimateAmplify(config);
   }
 }
