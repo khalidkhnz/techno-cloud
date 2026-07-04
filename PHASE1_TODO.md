@@ -17,7 +17,7 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 ## 0. Repo & Tooling
 - [x] Init Turborepo + pnpm workspace; strict `tsconfig` base
 - [x] Layout: `apps/{web,api}`, `packages/{core,env,db,costs,targets,providers,pulumi,ui}`, `infra`
-- [ ] Shared ESLint/Prettier; commit hooks _(prettier dep added; config + hooks pending)_
+- [~] Shared **ESLint** (flat config, typescript-eslint, prettier-compat) + Prettier ✓, wired into CI; git commit hooks (husky) still pending
 - [x] Validated env vars via **T3 Env** — `@t3-oss/env-core` in `packages/env` (server), `@t3-oss/env-nextjs` in `apps/web`
 - [ ] Local dev: Neon dev branch + LocalStack (or real AWS sandbox) for SQS/DynamoDB/S3
 
