@@ -43,7 +43,7 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 ## 4. Control Plane API (`apps/api`, NestJS on Lambda)
 - [x] Bootstrap NestJS + **Lambda arm64 handler** (serverless-express adapter, cached per container); health route _(Function URL wiring in §10)_
 - [x] Config (T3 Env) + **Drizzle module** (global DI provider)
-- [~] **SQS**: producer (`enqueueBuild`/`enqueueDeploy` in `packages/aws`) ✓; queues provisioned §10; worker Lambda consumers pending
+- [x] **SQS**: producer + **build/deploy worker Lambda handlers** ✓ (build→CodeBuild+state; deploy→driver under stack lock+state); queues §10 _(event-source mappings wired at deploy)_
 - [~] Modules: `projects` ✓, `deployments` ✓ (create+enqueue build, list), `platform-config` ✓; remaining: `auth`, `webhooks`, `logs`
 - [~] Endpoints: project CRUD ✓, platform config ✓, **create deployment (trigger)** ✓, list deployments ✓; remaining: poll logs
 - [x] **DynamoDB stack-lock** helper (`project:env`) via conditional writes (`withLock` in `packages/aws`)
@@ -55,10 +55,10 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 
 ## 6. Build Pipeline (CodeBuild)
 - [ ] Provision reusable CodeBuild project (Pulumi) with ECR push perms, arm compute _(SECURITY: reject `sourceLocationOverride`/`buildspecOverride` at StartBuild — validate inputs in the deploy Lambda before calling)_
-- [ ] Build detector: Dockerfile present? use it : generate via **Nixpacks**
-- [ ] Build worker Lambda triggers CodeBuild; tracks status
+- [ ] Build detector: Dockerfile present? use it : generate via **Nixpacks** _(runs inside CodeBuild buildspec)_
+- [x] Build worker Lambda triggers CodeBuild; tracks status (saves buildId, sets building state)
 - [ ] Stream CodeBuild/CloudWatch logs → `BuildLog` + expose via polling endpoint
-- [ ] Handle build failures cleanly
+- [~] Handle build failures cleanly _(worker marks `failed`; CodeBuild-completion → deploy bridge pending)_
 
 ## 7. Pulumi Engine (`packages/pulumi` + `packages/targets`)
 - [ ] Automation API wrapper run **inside CodeBuild** (init workspace, select/create stack, up/destroy, outputs)

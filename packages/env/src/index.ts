@@ -23,6 +23,7 @@ export const env = createEnv({
     PULUMI_STATE_BUCKET: z.string().optional(),
     PULUMI_LOCK_TABLE: z.string().optional(),
     ECR_REGISTRY: z.string().optional(),
+    BUILD_PROJECT_NAME: z.string().optional(),
     STACK_LOCK_TABLE: z.string().optional(),
     IDEMPOTENCY_TABLE: z.string().optional(),
     BUILD_QUEUE_URL: z.string().url().optional(),
