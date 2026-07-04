@@ -26,14 +26,14 @@ the Costs Module reconciles estimated vs actual spend per project and enforces b
 - [x] `customDomains.enabled` flag gate (add rejected when disabled)
 
 ## 3. RBAC & Teams
-- [~] Role enforcement: Owner/Admin/TeamAdmin/ProjectMember guards ✓; Developer-vs-Viewer write/read distinction pending
+- [x] Role enforcement: Owner/Admin/TeamAdmin/ProjectMember + **ProjectWriteGuard** — Viewers are read-only; all mutating project routes require developer+
 - [x] Team management: create team (caller→owner), list, members (add by email/invite, remove, role update) — API + `/admin/teams` UI, team-admin gated
 - [x] Project ownership by team; **access checks on every project-scoped route** (`ProjectMemberGuard` — fixes IDOR); project list/create team-scoped
 - [x] Invite flow extended to team + role assignment (addMember emails an invite carrying the role)
 
 ## 4. Audit Logs
 - [x] `AuditLog` writes: **global interceptor** auto-audits every mutating request (deploy, rollback, config update, env/secret changes, invite, environment create/delete) with actor resolved from session
-- [~] Queryable via `GET /audit` (**Owner**-gated, platform-wide) + `/admin/audit` UI; per-team scoping + filters (actor/project/action/time) pending
+- [x] Queryable via `GET /audit` (**Owner**-gated) + `/admin/audit` UI with **action filter** (ILIKE) + limit; per-team scoping + actor/time filters pending
 - [ ] Retention policy config
 
 ## 5. WebSocket Live Logs (upgrade from polling)

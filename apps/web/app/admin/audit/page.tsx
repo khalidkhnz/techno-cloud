@@ -10,14 +10,17 @@ export default function AuditPage() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
   const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [filter, setFilter] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  const load = (action?: string) => api.getAudit(action).then(setLogs).catch((e) => setError(String(e)));
 
   useEffect(() => {
     if (!isPending && !session) {
       router.replace("/login");
       return;
     }
-    if (session) api.getAudit().then(setLogs).catch((e) => setError(String(e)));
+    if (session) load();
   }, [isPending, session, router]);
 
   if (isPending || !session) return null;
@@ -28,7 +31,20 @@ export default function AuditPage() {
         ← Projects
       </Link>
       <h1 className="mt-2">Audit log</h1>
-      <p className="muted">Recent mutating actions (admin only).</p>
+      <p className="muted">Recent mutating actions (owner only).</p>
+
+      <form
+        className="mt-3 flex gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          load(filter || undefined);
+        }}
+      >
+        <input className="input max-w-[16rem]" placeholder="filter by action (e.g. POST)" value={filter} onChange={(e) => setFilter(e.target.value)} />
+        <button className="btn btn-secondary" type="submit">
+          Filter
+        </button>
+      </form>
 
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 

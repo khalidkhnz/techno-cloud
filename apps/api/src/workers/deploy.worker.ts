@@ -5,11 +5,12 @@
 
 import type { SQSHandler } from "aws-lambda";
 import { db, deployments, eq } from "@techno-deployer/db";
-import { startBuild } from "@techno-deployer/aws";
+import { claimIdempotency, startBuild } from "@techno-deployer/aws";
 import type { DeployJob } from "@techno-deployer/aws";
 
 export const handler: SQSHandler = async (event) => {
   for (const record of event.Records) {
+    if (!(await claimIdempotency(`deploy:${record.messageId}`))) continue; // duplicate delivery
     const job = JSON.parse(record.body) as DeployJob;
 
     const buildId = await startBuild(process.env.DEPLOY_PROJECT_NAME ?? "", {

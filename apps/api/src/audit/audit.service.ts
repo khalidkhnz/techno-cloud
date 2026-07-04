@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { auditLogs, desc, eq, users, type Db } from "@techno-deployer/db";
+import { auditLogs, desc, eq, sql, users, type Db } from "@techno-deployer/db";
 import { DRIZZLE } from "../drizzle/drizzle.module.js";
 
 export interface AuditEntry {
@@ -37,7 +37,12 @@ export class AuditService {
    * OwnerGuard (owner role only). audit_logs has no per-entry team; if per-team audit views are
    * needed later, add a teamId column and filter here.
    */
-  async list(limit = 100) {
-    return this.db.select().from(auditLogs).orderBy(desc(auditLogs.createdAt)).limit(limit);
+  async list(opts?: { limit?: number; action?: string }) {
+    const limit = Math.min(opts?.limit ?? 100, 500);
+    const base = this.db.select().from(auditLogs);
+    const rows = opts?.action
+      ? base.where(sql`${auditLogs.action} ILIKE ${`%${opts.action}%`}`)
+      : base;
+    return rows.orderBy(desc(auditLogs.createdAt)).limit(limit);
   }
 }

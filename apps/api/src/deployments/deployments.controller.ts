@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
-import { ProjectMemberGuard } from "../auth/auth.guard.js";
+import { ProjectMemberGuard, ProjectWriteGuard } from "../auth/auth.guard.js";
 import { DeploymentsService } from "./deployments.service.js";
 
 @UseGuards(ProjectMemberGuard)
@@ -12,11 +12,13 @@ export class DeploymentsController {
     return this.deployments.list(projectId);
   }
 
+  @UseGuards(ProjectWriteGuard)
   @Post()
   create(@Param("projectId") projectId: string) {
     return this.deployments.create(projectId);
   }
 
+  @UseGuards(ProjectWriteGuard)
   @Post(":deploymentId/rollback")
   rollback(
     @Param("projectId") projectId: string,

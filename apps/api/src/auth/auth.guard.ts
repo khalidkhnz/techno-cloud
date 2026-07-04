@@ -16,15 +16,22 @@ type AuthedRequest = Request & {
   params: Record<string, string | undefined>;
 };
 
-/** Team ids the given email (domain user) belongs to. */
-export async function teamIdsForEmail(db: Db, email: string): Promise<string[]> {
+/** Team memberships (teamId + role) for the given email. */
+export async function membershipsForEmail(
+  db: Db,
+  email: string,
+): Promise<Array<{ teamId: string; role: string }>> {
   const [domainUser] = await db.select().from(users).where(eq(users.email, email));
   if (!domainUser) return [];
-  const memberships = await db
-    .select()
+  return db
+    .select({ teamId: teamMemberships.teamId, role: teamMemberships.role })
     .from(teamMemberships)
     .where(eq(teamMemberships.userId, domainUser.id));
-  return memberships.map((m) => m.teamId);
+}
+
+/** Team ids the given email (domain user) belongs to. */
+export async function teamIdsForEmail(db: Db, email: string): Promise<string[]> {
+  return (await membershipsForEmail(db, email)).map((m) => m.teamId);
 }
 
 /** Requires a valid Better Auth session; attaches the auth user to the request. */
@@ -83,6 +90,36 @@ export class ProjectMemberGuard implements CanActivate {
     const [project] = await this.db.select().from(projects).where(eq(projects.id, projectId));
     if (!project || !teams.includes(project.teamId)) {
       throw new ForbiddenException("Not a member of this project's team");
+    }
+    req.authUser = { id: result.user.id, email: result.user.email };
+    return true;
+  }
+}
+
+/**
+ * Requires WRITE access to the project's team (owner/admin/developer — NOT viewer). Use on
+ * mutating project-scoped routes; pairs with the class-level ProjectMemberGuard for reads.
+ */
+@Injectable()
+export class ProjectWriteGuard implements CanActivate {
+  constructor(@Inject(DRIZZLE) private readonly db: Db) {}
+
+  async canActivate(ctx: ExecutionContext): Promise<boolean> {
+    const req = ctx.switchToHttp().getRequest<AuthedRequest>();
+    const result = await getSession(req);
+    if (!result?.session) throw new UnauthorizedException();
+
+    const projectId = req.params.projectId ?? req.params.id;
+    if (!projectId) throw new ForbiddenException("Missing project id");
+
+    const [project] = await this.db.select().from(projects).where(eq(projects.id, projectId));
+    if (!project) throw new ForbiddenException("Unknown project");
+
+    const membership = (await membershipsForEmail(this.db, result.user.email)).find(
+      (m) => m.teamId === project.teamId,
+    );
+    if (!membership || membership.role === "viewer") {
+      throw new ForbiddenException("Requires write access (developer or above)");
     }
     req.authUser = { id: result.user.id, email: result.user.email };
     return true;

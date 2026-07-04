@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, UseGuards } from "@nestjs/common";
-import { ProjectMemberGuard } from "../auth/auth.guard.js";
+import { ProjectMemberGuard, ProjectWriteGuard } from "../auth/auth.guard.js";
 import { EnvironmentsService, type CreateEnvironmentDto } from "./environments.service.js";
 
 @UseGuards(ProjectMemberGuard)
@@ -12,11 +12,13 @@ export class EnvironmentsController {
     return this.environments.list(projectId);
   }
 
+  @UseGuards(ProjectWriteGuard)
   @Post()
   create(@Param("projectId") projectId: string, @Body() dto: CreateEnvironmentDto) {
     return this.environments.create(projectId, dto);
   }
 
+  @UseGuards(ProjectWriteGuard)
   @Delete(":environmentId")
   remove(
     @Param("projectId") projectId: string,

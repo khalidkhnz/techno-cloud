@@ -24,14 +24,18 @@ phases:
       - IMAGE="$ECR_REGISTRY:$DEPLOYMENT_ID"
       - |
         if [ -f Dockerfile ]; then
-          echo "Dockerfile found — building with docker";
-          docker build -t "$IMAGE" .;
+          echo "Dockerfile found — building with docker (BuildKit inline cache)";
+          export DOCKER_BUILDKIT=1;
+          docker pull "$ECR_REGISTRY:cache" || true;
+          docker build -t "$IMAGE" --cache-from "$ECR_REGISTRY:cache" --build-arg BUILDKIT_INLINE_CACHE=1 .;
+          docker tag "$IMAGE" "$ECR_REGISTRY:cache";
         else
           echo "No Dockerfile — building with Nixpacks";
           curl -sSL https://nixpacks.com/install.sh | bash;
           nixpacks build . --name "$IMAGE";
         fi
       - docker push "$IMAGE"
+      - docker push "$ECR_REGISTRY:cache" || true
   post_build:
     commands:
       - echo "Pushed $IMAGE"

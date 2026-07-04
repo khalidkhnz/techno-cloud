@@ -6,7 +6,7 @@
 
 import type { SQSHandler } from "aws-lambda";
 import { db, deployments, eq, projects } from "@techno-deployer/db";
-import { startBuild } from "@techno-deployer/aws";
+import { claimIdempotency, startBuild } from "@techno-deployer/aws";
 import type { BuildJob } from "@techno-deployer/aws";
 import type { BuildConfig, SourceRef } from "@techno-deployer/core";
 import { createSourceRegistry } from "@techno-deployer/providers";
@@ -15,6 +15,7 @@ const sources = createSourceRegistry();
 
 export const handler: SQSHandler = async (event) => {
   for (const record of event.Records) {
+    if (!(await claimIdempotency(`build:${record.messageId}`))) continue; // duplicate delivery
     const job = JSON.parse(record.body) as BuildJob;
 
     await db.update(deployments).set({ state: "building" }).where(eq(deployments.id, job.deploymentId));

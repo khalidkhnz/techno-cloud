@@ -49,6 +49,29 @@ export async function releaseLock(lockId: string): Promise<void> {
   );
 }
 
+const idempotencyTable = () => process.env.IDEMPOTENCY_TABLE ?? "td-dev-idempotency";
+
+/**
+ * Claim an idempotency key. Returns true the FIRST time (proceed), false if already claimed
+ * (skip — the SQS message is a duplicate/redelivery). Backs idempotent worker handlers.
+ */
+export async function claimIdempotency(key: string, ttlMs = 24 * 60 * 60 * 1000): Promise<boolean> {
+  try {
+    await client.send(
+      new PutItemCommand({
+        TableName: idempotencyTable(),
+        Item: { key: { S: key }, expiresAt: { N: String(Math.floor((Date.now() + ttlMs) / 1000)) } },
+        ConditionExpression: "attribute_not_exists(#k)",
+        ExpressionAttributeNames: { "#k": "key" },
+      }),
+    );
+    return true;
+  } catch (err) {
+    if (err instanceof ConditionalCheckFailedException) return false;
+    throw err;
+  }
+}
+
 /** Run `fn` while holding the lock; always releases. Throws if the lock can't be acquired. */
 export async function withLock<T>(lockId: string, fn: () => Promise<T>): Promise<T> {
   const acquired = await acquireLock(lockId);

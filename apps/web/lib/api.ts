@@ -71,7 +71,8 @@ export const api = {
     req<Budget>("/costs/budgets", { method: "POST", body: JSON.stringify(body) }),
   deleteBudget: (id: string) =>
     req<{ ok: boolean }>(`/costs/budgets/${id}`, { method: "DELETE" }),
-  getAudit: () => req<AuditLog[]>("/audit"),
+  getAudit: (action?: string) =>
+    req<AuditLog[]>(`/audit${action ? `?action=${encodeURIComponent(action)}` : ""}`),
   listTeams: () => req<{ id: string; name: string }[]>("/teams"),
   createTeam: (name: string) =>
     req<{ id: string; name: string }>("/teams", { method: "POST", body: JSON.stringify({ name }) }),

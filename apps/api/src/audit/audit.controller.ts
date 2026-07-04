@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from "@nestjs/common";
+import { Controller, Get, Query, UseGuards } from "@nestjs/common";
 import { OwnerGuard } from "../auth/auth.guard.js";
 import { AuditService } from "./audit.service.js";
 
@@ -9,7 +9,7 @@ export class AuditController {
   constructor(private readonly audit: AuditService) {}
 
   @Get()
-  list() {
-    return this.audit.list();
+  list(@Query("action") action?: string, @Query("limit") limit?: string) {
+    return this.audit.list({ action, limit: limit ? Number(limit) : undefined });
   }
 }

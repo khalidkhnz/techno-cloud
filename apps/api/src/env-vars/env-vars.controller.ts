@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Put, Query, UseGuards } from "@nestjs/common";
-import { ProjectMemberGuard } from "../auth/auth.guard.js";
+import { ProjectMemberGuard, ProjectWriteGuard } from "../auth/auth.guard.js";
 import { EnvVarsService, type UpsertEnvVarDto } from "./env-vars.service.js";
 
 type Scope = "production" | "preview" | "development";
@@ -14,11 +14,13 @@ export class EnvVarsController {
     return this.envVars.list(projectId, scope ?? "production");
   }
 
+  @UseGuards(ProjectWriteGuard)
   @Put()
   upsert(@Param("projectId") projectId: string, @Body() dto: UpsertEnvVarDto) {
     return this.envVars.upsert(projectId, dto);
   }
 
+  @UseGuards(ProjectWriteGuard)
   @Delete()
   remove(
     @Param("projectId") projectId: string,

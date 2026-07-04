@@ -12,8 +12,8 @@ Module flags waste and suggests cheaper targets.
 ---
 
 ## 1. Resilience & Idempotency (serverless)
-- [ ] Idempotent SQS worker handlers (dedupe via DynamoDB idempotency keys)
-- [ ] Dead-letter queues for build/deploy; retry with backoff
+- [x] Idempotent SQS worker handlers — `claimIdempotency` (DynamoDB conditional write, keyed by messageId) in build+deploy workers
+- [~] Dead-letter queues provisioned (§10) + SQS redrive retry; poison-message handling pending
 - [ ] Lambda concurrency limits per queue; poison-message handling
 - [ ] Graceful handling of CodeBuild timeouts/failures mid-Pulumi
 - [ ] Neon connection resilience (pooler, retry, circuit-break)
@@ -21,7 +21,7 @@ Module flags waste and suggests cheaper targets.
 ## 2. Build Throughput
 - [ ] CodeBuild concurrency management within `maxConcurrentBuilds`
 - [ ] Fair scheduling across teams; queue backpressure
-- [ ] Build cache (ECR layer / S3 dependency) to cut minutes + cost
+- [x] Build cache — Docker BuildKit inline cache (pull/push `$ECR_REGISTRY:cache`, `--cache-from`) in the buildspec
 - [ ] Per-team build concurrency limits
 
 ## 3. Quotas & Limits
