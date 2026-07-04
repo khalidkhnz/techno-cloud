@@ -14,6 +14,8 @@ import {
   eq,
   invites,
   sessions,
+  teamMemberships,
+  users,
   verifications,
 } from "@techno-deployer/db";
 import { env } from "@techno-deployer/env";
@@ -52,6 +54,30 @@ export const auth = betterAuth({
             throw new Error("This email has not been invited.");
           }
           return { data: user };
+        },
+        // Materialize the domain user + team membership (with the invited role) and
+        // mark the invite accepted, so RBAC guards can resolve roles by email.
+        after: async (user) => {
+          const [invite] = await db
+            .select()
+            .from(invites)
+            .where(eq(invites.email, user.email));
+
+          const inserted = await db
+            .insert(users)
+            .values({ email: user.email, name: user.name ?? null })
+            .onConflictDoNothing()
+            .returning();
+          const domainUser =
+            inserted[0] ??
+            (await db.select().from(users).where(eq(users.email, user.email)))[0];
+
+          if (invite && domainUser) {
+            await db
+              .insert(teamMemberships)
+              .values({ teamId: invite.teamId, userId: domainUser.id, role: invite.role });
+            await db.update(invites).set({ acceptedAt: new Date() }).where(eq(invites.id, invite.id));
+          }
         },
       },
     },

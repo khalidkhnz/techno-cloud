@@ -37,14 +37,14 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 - [x] Better Auth in `apps/api` (email/password + **emailOTP** plugin), Drizzle adapter, auth tables (migration 0001), handler mounted at `/api/auth/*` (raw-body before JSON parser)
 - [x] Nodemailer transport (SMTP with dev-logging fallback, SES-ready)
 - [~] Invite flow: admin invite endpoint + email link ✓, accept ✓, **invite-only enforced** via Better Auth `user.create.before` hook; signup/OTP via Better Auth endpoints _(UI pending)_
-- [ ] Session middleware + guards; enforce Admin for invites _(controllers marked TODO(phase3) RBAC)_
+- [x] Session middleware + guards: `AuthGuard` (valid session) on projects/deployments/platform-config; `AdminGuard` (owner/admin role) on invites create/list + platform-config update; domain user + membership materialized on signup (`create.after`)
 - [x] RBAC enum stub (Owner/Admin/Developer/Viewer) — `roleEnum` in schema + `core`
 
 ## 4. Control Plane API (`apps/api`, NestJS on Lambda)
 - [x] Bootstrap NestJS + **Lambda arm64 handler** (serverless-express adapter, cached per container); health route _(Function URL wiring in §10)_
 - [x] Config (T3 Env) + **Drizzle module** (global DI provider)
 - [x] **SQS**: producer + **build/deploy worker Lambda handlers** ✓ (build→CodeBuild+state; deploy→driver under stack lock+state); queues §10 _(event-source mappings wired at deploy)_
-- [~] Modules: `projects` ✓, `deployments` ✓ (create+enqueue build, list), `platform-config` ✓; remaining: `auth`, `webhooks`, `logs`
+- [~] Modules: `projects` ✓, `deployments` ✓, `platform-config` ✓, `invites` ✓, `auth` ✓ (Better Auth + guards); remaining: `webhooks`, `logs`
 - [~] Endpoints: project CRUD ✓, platform config ✓, **create deployment (trigger)** ✓, list deployments ✓; remaining: poll logs
 - [x] **DynamoDB stack-lock** helper (`project:env`) via conditional writes (`withLock` in `packages/aws`)
 

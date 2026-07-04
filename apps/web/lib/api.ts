@@ -24,6 +24,7 @@ const base = env.NEXT_PUBLIC_API_URL.replace(/\/$/, "");
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${base}${path}`, {
+    credentials: "include", // send the Better Auth session cookie to guarded routes
     headers: { "content-type": "application/json" },
     ...init,
   });
