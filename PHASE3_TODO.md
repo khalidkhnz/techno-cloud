@@ -32,8 +32,8 @@ the Costs Module reconciles estimated vs actual spend per project and enforces b
 - [ ] Invite flow extended to team + role assignment
 
 ## 4. Audit Logs
-- [ ] `AuditLog` writes: deploy, rollback, destroy, config/flag change, secret access, invite, role change
-- [ ] Immutable, queryable; UI with filters (actor, project, action, time)
+- [x] `AuditLog` writes: **global interceptor** auto-audits every mutating request (deploy, rollback, config update, env/secret changes, invite, environment create/delete) with actor resolved from session
+- [~] Queryable via `GET /audit` (Admin) + `/admin/audit` UI; filters (actor/project/action/time) pending
 - [ ] Retention policy config
 
 ## 5. WebSocket Live Logs (upgrade from polling)

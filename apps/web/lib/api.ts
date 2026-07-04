@@ -55,6 +55,7 @@ export const api = {
     req<Record<string, { monthlyLowUsd: number; monthlyHighUsd: number }>>("/estimates"),
   getPlatformConfig: () => req<PlatformConfig>("/platform-config"),
   getMeters: () => req<FreeTierMeter[]>("/meters"),
+  getAudit: () => req<AuditLog[]>("/audit"),
   listEnvironments: (projectId: string) =>
     req<Environment[]>(`/projects/${projectId}/environments`),
   createEnvironment: (projectId: string, body: { kind: string; name: string }) =>
@@ -105,6 +106,15 @@ export const TARGET_FLAG: Record<string, string> = {
 };
 
 export const ALWAYS_ON_TARGETS = ["apprunner", "ecs-fargate", "ec2"];
+
+export interface AuditLog {
+  id: string;
+  actorId: string | null;
+  action: string;
+  target: string | null;
+  meta: { actorEmail?: string | null } | null;
+  createdAt: string;
+}
 
 export interface Environment {
   id: string;
