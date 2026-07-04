@@ -12,6 +12,9 @@
     "lint": "eslint .",
     "typecheck": "turbo run typecheck",
     "test": "vitest run",
+    "db:generate": "pnpm --filter @techno-deployer/db db:generate",
+    "db:migrate": "pnpm --filter @techno-deployer/db db:migrate",
+    "db:seed": "pnpm --filter @techno-deployer/db db:seed",
     "clean": "turbo run clean && rm -rf node_modules"
   },
   "devDependencies": {
