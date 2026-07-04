@@ -2,6 +2,7 @@ import { Controller, Get, UseGuards } from "@nestjs/common";
 import {
   ALWAYS_ON_TARGETS,
   SOURCE_PROVIDER_META,
+  TARGET_CONFIG_SCHEMA,
   TARGET_META,
   isTargetEnabled,
   type DeployTargetKind,
@@ -30,6 +31,7 @@ export class MetaController {
       description: TARGET_META[kind].description,
       enabled: isTargetEnabled(config, kind),
       alwaysOn: ALWAYS_ON_TARGETS.includes(kind),
+      configSchema: TARGET_CONFIG_SCHEMA[kind],
     }));
 
     const providers = (Object.keys(SOURCE_PROVIDER_META) as SourceProviderKind[]).map((kind) => ({

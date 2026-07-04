@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, ArrowLeft, KeyRound, Leaf, ScanSearch, Sparkles } from "lucide-react";
@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/app/page-header";
 import { TargetBadge } from "@/components/app/target-badge";
 import { BuildPlanView } from "@/components/app/build-plan";
 import { DockerfilePreview } from "@/components/app/dockerfile-preview";
+import { TargetConfigForm, type ConfigValue } from "@/components/app/target-config-form";
 import { FadeIn } from "@/components/motion";
 import { generateDockerfile, maskSecrets } from "@/lib/dockerfile";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ export default function NewProjectPage() {
   const [buildCmd, setBuildCmd] = useState("");
   const [startCmd, setStartCmd] = useState("");
   const [notifyEmail, setNotifyEmail] = useState("");
+  const [targetConfig, setTargetConfig] = useState<Record<string, ConfigValue>>({});
 
   const create = useCreateProject();
   const detect = useDetectRepo();
@@ -61,8 +63,17 @@ export default function NewProjectPage() {
   const targets = (meta?.targets ?? []).filter((t) => t.enabled);
   const selectedProvider = providers.find((p) => p.kind === provider);
   const selectedTarget = targets.find((t) => t.kind === target);
+  const targetSchema = selectedTarget?.configSchema ?? [];
   const est = estimates?.[target];
   const isZip = provider === "zip";
+
+  // Reset target config to the selected target's schema defaults whenever the target changes.
+  useEffect(() => {
+    const schema = meta?.targets.find((t) => t.kind === target)?.configSchema ?? [];
+    const defaults: Record<string, ConfigValue> = {};
+    for (const f of schema) if (f.default !== undefined) defaults[f.key] = f.default;
+    setTargetConfig(defaults);
+  }, [target, meta]);
 
   // Live Dockerfile / build preview — the repo's own Dockerfile if present, else a generated one
   // that reflects the detected framework + the build/start commands as they're typed. Secrets masked.
@@ -98,6 +109,7 @@ export default function NewProjectPage() {
         target,
         source: { provider, ...(repo ? { repo } : {}), ...(token ? { token } : {}) },
         buildConfig,
+        targetConfig: Object.keys(targetConfig).length ? targetConfig : undefined,
         notifyEmail: notifyEmail || undefined,
       },
       { onSuccess: () => router.push("/projects") },
@@ -287,6 +299,19 @@ export default function NewProjectPage() {
                     </span>
                   )}
                 </div>
+              </div>
+            )}
+
+            {targetSchema.length > 0 && (
+              <div className="mt-2 rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
+                <p className="mb-3 text-xs font-medium text-muted-foreground">
+                  {selectedTarget?.label} configuration
+                </p>
+                <TargetConfigForm
+                  schema={targetSchema}
+                  values={targetConfig}
+                  onChange={(k, v) => setTargetConfig((c) => ({ ...c, [k]: v }))}
+                />
               </div>
             )}
           </div>

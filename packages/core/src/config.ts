@@ -74,6 +74,133 @@ export function enabledTargets(config: PlatformConfig): DeployTargetKind[] {
   );
 }
 
+// --- Per-target configuration schema (drives the dynamic config form in the create flow) ---
+
+export interface TargetConfigOption {
+  label: string;
+  value: string;
+}
+
+export interface TargetConfigField {
+  key: string;
+  label: string;
+  type: "select" | "number" | "text" | "boolean";
+  default?: string | number | boolean;
+  options?: TargetConfigOption[];
+  help?: string;
+  unit?: string;
+  min?: number;
+  max?: number;
+  placeholder?: string;
+  /** Only show this field when another field's value matches (conditional config). */
+  showIf?: { key: string; equals: string };
+}
+
+const opts = (values: (string | number)[]): TargetConfigOption[] =>
+  values.map((v) => ({ label: String(v), value: String(v) }));
+
+const mb = (values: number[]): TargetConfigOption[] =>
+  values.map((v) => ({ label: `${v} MB`, value: String(v) }));
+
+/** Config fields offered per deploy target — rendered dynamically after the target is chosen. */
+export const TARGET_CONFIG_SCHEMA: Record<DeployTargetKind, TargetConfigField[]> = {
+  lambda: [
+    { key: "memoryMb", label: "Memory", type: "select", default: "512", unit: "MB", options: mb([128, 256, 512, 1024, 2048, 3008]) },
+    { key: "timeoutSec", label: "Timeout", type: "number", default: 30, unit: "sec", min: 1, max: 900 },
+    {
+      key: "architecture",
+      label: "Architecture",
+      type: "select",
+      default: "arm64",
+      options: [
+        { label: "arm64 (Graviton — cheaper)", value: "arm64" },
+        { label: "x86_64", value: "x86_64" },
+      ],
+    },
+  ],
+  amplify: [
+    { key: "branch", label: "Production branch", type: "text", default: "main", placeholder: "main" },
+  ],
+  "static-cdn": [
+    { key: "outputDir", label: "Build output directory", type: "text", default: "dist", placeholder: "dist" },
+    { key: "spa", label: "Single-page app (SPA fallback to index.html)", type: "boolean", default: true },
+  ],
+  apprunner: [
+    {
+      key: "cpu",
+      label: "vCPU",
+      type: "select",
+      default: "1",
+      options: [
+        { label: "0.25 vCPU", value: "0.25" },
+        { label: "0.5 vCPU", value: "0.5" },
+        { label: "1 vCPU", value: "1" },
+        { label: "2 vCPU", value: "2" },
+      ],
+    },
+    { key: "memoryMb", label: "Memory", type: "select", default: "2048", unit: "MB", options: mb([512, 1024, 2048, 3072, 4096]) },
+    { key: "port", label: "Container port", type: "number", default: 8080, min: 1, max: 65535 },
+  ],
+  "ecs-fargate": [
+    { key: "cpu", label: "CPU units", type: "select", default: "512", options: opts([256, 512, 1024, 2048, 4096]) },
+    { key: "memoryMb", label: "Memory", type: "select", default: "1024", unit: "MB", options: mb([512, 1024, 2048, 4096, 8192]) },
+    { key: "desiredCount", label: "Tasks", type: "number", default: 1, min: 1, max: 10 },
+    { key: "port", label: "Container port", type: "number", default: 8080, min: 1, max: 65535 },
+  ],
+  ec2: [
+    {
+      key: "mode",
+      label: "Instance",
+      type: "select",
+      default: "new",
+      help: "One EC2 host can serve multiple apps — reuse an existing instance to save cost.",
+      options: [
+        { label: "Provision a new instance", value: "new" },
+        { label: "Use an existing instance", value: "existing" },
+      ],
+    },
+    {
+      key: "instanceId",
+      label: "Existing instance ID",
+      type: "text",
+      placeholder: "i-0abc123def456…",
+      showIf: { key: "mode", equals: "existing" },
+      help: "The app is deployed onto this instance; Nginx is configured automatically to route it.",
+    },
+    {
+      key: "instanceType",
+      label: "Instance type",
+      type: "select",
+      default: "t3.micro",
+      showIf: { key: "mode", equals: "new" },
+      options: opts(["t3.micro", "t3.small", "t3.medium", "t3.large", "t4g.small", "t4g.medium"]),
+    },
+    {
+      key: "os",
+      label: "Operating system",
+      type: "select",
+      default: "al2023",
+      showIf: { key: "mode", equals: "new" },
+      options: [
+        { label: "Amazon Linux 2023", value: "al2023" },
+        { label: "Ubuntu 22.04 LTS", value: "ubuntu22" },
+      ],
+    },
+    { key: "storageGb", label: "Root storage", type: "number", default: 20, unit: "GB", min: 8, max: 1000, showIf: { key: "mode", equals: "new" } },
+  ],
+};
+
+/** Default config object for a target (field key → default value). */
+export function defaultTargetConfig(
+  kind: DeployTargetKind,
+): Record<string, string | number | boolean> {
+  const out: Record<string, string | number | boolean> = {};
+  for (const f of TARGET_CONFIG_SCHEMA[kind]) {
+    if (f.default !== undefined) out[f.key] = f.default;
+  }
+  return out;
+}
+
 /** All deploy targets enabled by default; admins can disable always-on targets via PlatformConfig. */
 export const DEFAULT_PLATFORM_CONFIG: PlatformConfig = {
   targets: {

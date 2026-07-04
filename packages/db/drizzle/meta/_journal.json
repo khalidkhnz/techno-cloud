@@ -71,6 +71,13 @@
       "when": 1783200778991,
       "tag": "0009_slippery_hellcat",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1783209180706,
+      "tag": "0010_lonely_power_pack",
+      "breakpoints": true
     }
   ]
 }

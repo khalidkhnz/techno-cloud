@@ -19,6 +19,7 @@ export interface CreateProjectDto {
   target?: DeployTargetKind;
   source: SourceRef;
   buildConfig?: BuildConfig;
+  targetConfig?: Record<string, string | number | boolean>;
   notifyEmail?: string;
 }
 
@@ -67,6 +68,7 @@ export class ProjectsService {
         target,
         source: dto.source,
         buildConfig: dto.buildConfig ?? null,
+        targetConfig: dto.targetConfig ?? null,
         notifyEmail: dto.notifyEmail ?? null,
       })
       .returning();

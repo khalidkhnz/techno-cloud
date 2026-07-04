@@ -41,6 +41,7 @@ export const api = {
     target?: string;
     source: unknown;
     buildConfig?: { installCommand?: string; buildCommand?: string; startCommand?: string };
+    targetConfig?: Record<string, string | number | boolean>;
     notifyEmail?: string;
   }) => req<Project>("/projects", { method: "POST", body: JSON.stringify(body) }),
   listDeployments: (projectId: string) =>
@@ -175,12 +176,32 @@ export interface DetectResult {
   dockerfile: string | null;
 }
 
+export interface TargetConfigOption {
+  label: string;
+  value: string;
+}
+
+export interface TargetConfigField {
+  key: string;
+  label: string;
+  type: "select" | "number" | "text" | "boolean";
+  default?: string | number | boolean;
+  options?: TargetConfigOption[];
+  help?: string;
+  unit?: string;
+  min?: number;
+  max?: number;
+  placeholder?: string;
+  showIf?: { key: string; equals: string };
+}
+
 export interface MetaTarget {
   kind: string;
   label: string;
   description: string;
   enabled: boolean;
   alwaysOn: boolean;
+  configSchema: TargetConfigField[];
 }
 
 export interface MetaProvider {
