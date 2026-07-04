@@ -9,7 +9,7 @@ import type {
 } from "@techno-deployer/core";
 import { estimateEc2 } from "@techno-deployer/costs";
 import { ec2Program } from "@techno-deployer/pulumi";
-import { appName, boundaryArn, runDeploy, runDestroy } from "./util.js";
+import { appName, appTags, boundaryArn, runDeploy, runDestroy } from "./util.js";
 
 export class Ec2Target implements DeployTarget {
   readonly kind = "ec2" as const;
@@ -20,7 +20,7 @@ export class Ec2Target implements DeployTarget {
     return runDeploy(
       ctx,
       name,
-      ec2Program({ name, imageUri: ctx.artifact.ref, boundaryArn: boundaryArn() }),
+      ec2Program({ name, imageUri: ctx.artifact.ref, boundaryArn: boundaryArn(), tags: appTags(ctx) }),
       opts,
     );
   }

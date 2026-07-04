@@ -8,6 +8,7 @@ export interface AppRunnerProgramArgs {
   boundaryArn: string;
   port?: number;
   env?: Record<string, string>;
+  tags?: Record<string, string>;
 }
 
 /** Deploy program: an App Runner service from an ECR image (always-on — no scale-to-zero). */
@@ -48,6 +49,7 @@ export function appRunnerProgram(args: AppRunnerProgramArgs): PulumiFn {
         },
       },
       instanceConfiguration: { cpu: "1024", memory: "2048" },
+      tags: args.tags,
     });
 
     return { url: pulumi.interpolate`https://${service.serviceUrl}` };

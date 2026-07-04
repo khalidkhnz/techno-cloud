@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { eq, type Db, projects } from "@techno-deployer/db";
+import { count, eq, type Db, projects } from "@techno-deployer/db";
 import { isTargetEnabled } from "@techno-deployer/core";
 import type { DeployTargetKind } from "@techno-deployer/core";
 import type { SourceRef } from "@techno-deployer/core";
@@ -32,6 +32,18 @@ export class ProjectsService {
     const config = await this.platformConfig.get();
     if (!isTargetEnabled(config, target)) {
       throw new BadRequestException(`Target "${target}" is disabled by the platform config`);
+    }
+
+    // Quota: cap projects per team (Phase 4 §3).
+    const rows = await this.db
+      .select({ n: count() })
+      .from(projects)
+      .where(eq(projects.teamId, dto.teamId));
+    const projectCount = Number(rows[0]?.n ?? 0);
+    if (projectCount >= config.limits.maxAppsPerTeam) {
+      throw new BadRequestException(
+        `Team has reached the maximum of ${config.limits.maxAppsPerTeam} projects`,
+      );
     }
 
     const [row] = await this.db

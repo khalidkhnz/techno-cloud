@@ -10,6 +10,7 @@ export interface EcsFargateProgramArgs {
   cpu?: string;
   memory?: string;
   env?: Record<string, string>;
+  tags?: Record<string, string>;
 }
 
 /**
@@ -69,7 +70,7 @@ export function ecsFargateProgram(args: EcsFargateProgramArgs): PulumiFn {
       defaultActions: [{ type: "forward", targetGroupArn: tg.arn }],
     });
 
-    const cluster = new aws.ecs.Cluster(args.name, { name: args.name });
+    const cluster = new aws.ecs.Cluster(args.name, { name: args.name, tags: args.tags });
 
     const taskDef = new aws.ecs.TaskDefinition(args.name, {
       family: args.name,
@@ -105,6 +106,7 @@ export function ecsFargateProgram(args: EcsFargateProgramArgs): PulumiFn {
           assignPublicIp: true,
         },
         loadBalancers: [{ targetGroupArn: tg.arn, containerName: args.name, containerPort: port }],
+        tags: args.tags,
       },
       { dependsOn: [listener] },
     );

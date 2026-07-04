@@ -9,7 +9,7 @@ import type {
 } from "@techno-deployer/core";
 import { estimateAppRunner } from "@techno-deployer/costs";
 import { appRunnerProgram } from "@techno-deployer/pulumi";
-import { appName, boundaryArn, runDeploy, runDestroy } from "./util.js";
+import { appName, appTags, boundaryArn, runDeploy, runDestroy } from "./util.js";
 
 export class AppRunnerTarget implements DeployTarget {
   readonly kind = "apprunner" as const;
@@ -20,7 +20,7 @@ export class AppRunnerTarget implements DeployTarget {
     return runDeploy(
       ctx,
       name,
-      appRunnerProgram({ name, imageUri: ctx.artifact.ref, boundaryArn: boundaryArn(), env: ctx.env }),
+      appRunnerProgram({ name, imageUri: ctx.artifact.ref, boundaryArn: boundaryArn(), env: ctx.env, tags: appTags(ctx) }),
       opts,
     );
   }

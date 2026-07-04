@@ -7,6 +7,7 @@ export interface Ec2ProgramArgs {
   boundaryArn: string;
   instanceType?: string;
   port?: number;
+  tags?: Record<string, string>;
 }
 
 /**
@@ -44,6 +45,7 @@ export function ec2Program(args: Ec2ProgramArgs): PulumiFn {
       vpcId: vpc.id,
       ingress: [{ protocol: "tcp", fromPort: 80, toPort: 80, cidrBlocks: ["0.0.0.0/0"] }],
       egress: [{ protocol: "-1", fromPort: 0, toPort: 0, cidrBlocks: ["0.0.0.0/0"] }],
+      tags: args.tags,
     });
 
     const userData = aws
@@ -67,6 +69,7 @@ export function ec2Program(args: Ec2ProgramArgs): PulumiFn {
       iamInstanceProfile: { arn: profile.arn },
       vpcSecurityGroupIds: [sg.id],
       userData,
+      tags: args.tags,
     });
 
     new aws.autoscaling.Group(args.name, {

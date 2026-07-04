@@ -9,6 +9,16 @@ export function appName(ctx: DeployContext): string {
   return `${appPrefix()}-app-${ctx.project.id.slice(0, 8)}-${ctx.environment}`;
 }
 
+/** Cost-attribution tags applied to deployed resources (Cost Explorer groups on these). */
+export function appTags(ctx: DeployContext): Record<string, string> {
+  return {
+    "td:project": ctx.project.id,
+    "td:env": ctx.environment,
+    "td:deploymentId": ctx.deploymentId,
+    "td:target": ctx.project.target,
+  };
+}
+
 /** Runs a driver's program via Pulumi; on preview it returns drift instead of applying. */
 export async function runDeploy(
   ctx: DeployContext,

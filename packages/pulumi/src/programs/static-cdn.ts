@@ -4,6 +4,7 @@ import type { PulumiFn } from "@pulumi/pulumi/automation/index.js";
 
 export interface StaticCdnProgramArgs {
   name: string;
+  tags?: Record<string, string>;
 }
 
 /**
@@ -12,7 +13,7 @@ export interface StaticCdnProgramArgs {
  */
 export function staticCdnProgram(args: StaticCdnProgramArgs): PulumiFn {
   return async () => {
-    const bucket = new aws.s3.BucketV2(args.name, { bucket: args.name });
+    const bucket = new aws.s3.BucketV2(args.name, { bucket: args.name, tags: args.tags });
 
     new aws.s3.BucketPublicAccessBlock(args.name, {
       bucket: bucket.id,
@@ -48,6 +49,7 @@ export function staticCdnProgram(args: StaticCdnProgramArgs): PulumiFn {
       },
       restrictions: { geoRestriction: { restrictionType: "none" } },
       viewerCertificate: { cloudfrontDefaultCertificate: true },
+      tags: args.tags,
     });
 
     // Allow the distribution to read from the bucket (OAC + bucket policy).

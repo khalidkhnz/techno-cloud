@@ -9,7 +9,7 @@ import type {
 } from "@techno-deployer/core";
 import { estimateFargate } from "@techno-deployer/costs";
 import { ecsFargateProgram } from "@techno-deployer/pulumi";
-import { appName, boundaryArn, runDeploy, runDestroy } from "./util.js";
+import { appName, appTags, boundaryArn, runDeploy, runDestroy } from "./util.js";
 
 export class EcsFargateTarget implements DeployTarget {
   readonly kind = "ecs-fargate" as const;
@@ -20,7 +20,7 @@ export class EcsFargateTarget implements DeployTarget {
     return runDeploy(
       ctx,
       name,
-      ecsFargateProgram({ name, imageUri: ctx.artifact.ref, boundaryArn: boundaryArn(), env: ctx.env }),
+      ecsFargateProgram({ name, imageUri: ctx.artifact.ref, boundaryArn: boundaryArn(), env: ctx.env, tags: appTags(ctx) }),
       opts,
     );
   }

@@ -14,7 +14,7 @@ import type {
 } from "@techno-deployer/core";
 import { estimateLambda } from "@techno-deployer/costs";
 import { lambdaProgram } from "@techno-deployer/pulumi";
-import { appName, boundaryArn, runDeploy, runDestroy } from "./util.js";
+import { appName, appTags, boundaryArn, runDeploy, runDestroy } from "./util.js";
 
 export class LambdaTarget implements DeployTarget {
   readonly kind = "lambda" as const;
@@ -25,7 +25,7 @@ export class LambdaTarget implements DeployTarget {
     return runDeploy(
       ctx,
       name,
-      lambdaProgram({ name, imageUri: ctx.artifact.ref, boundaryArn: boundaryArn(), env: ctx.env }),
+      lambdaProgram({ name, imageUri: ctx.artifact.ref, boundaryArn: boundaryArn(), env: ctx.env, tags: appTags(ctx) }),
       opts,
     );
   }

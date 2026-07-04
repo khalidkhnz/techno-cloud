@@ -9,6 +9,7 @@ export interface LambdaProgramArgs {
   boundaryArn: string;
   env?: Record<string, string>;
   memoryMb?: number;
+  tags?: Record<string, string>;
 }
 
 /**
@@ -43,6 +44,7 @@ export function lambdaProgram(args: LambdaProgramArgs): PulumiFn {
       memorySize: args.memoryMb ?? 512,
       timeout: 30,
       ...(args.env ? { environment: { variables: args.env } } : {}),
+      ...(args.tags ? { tags: args.tags } : {}),
     });
 
     const url = new aws.lambda.FunctionUrl(args.name, {

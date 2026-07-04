@@ -9,6 +9,7 @@ export interface AmplifyProgramArgs {
   /** Provider access token so Amplify can pull + build the repo. */
   accessToken?: string;
   env?: Record<string, string>;
+  tags?: Record<string, string>;
 }
 
 /**
@@ -23,6 +24,7 @@ export function amplifyProgram(args: AmplifyProgramArgs): PulumiFn {
       platform: "WEB_COMPUTE",
       ...(args.accessToken ? { accessToken: args.accessToken } : {}),
       ...(args.env ? { environmentVariables: args.env } : {}),
+      ...(args.tags ? { tags: args.tags } : {}),
     });
 
     const branch = new aws.amplify.Branch(args.name, {

@@ -16,7 +16,7 @@ import type {
 } from "@techno-deployer/core";
 import { estimateAmplify } from "@techno-deployer/costs";
 import { amplifyProgram } from "@techno-deployer/pulumi";
-import { appName, runDeploy, runDestroy } from "./util.js";
+import { appName, appTags, runDeploy, runDestroy } from "./util.js";
 
 function repoUrl(source: SourceRef): string {
   const host =
@@ -44,6 +44,7 @@ export class AmplifyTarget implements DeployTarget {
         branch: source.ref ?? "main",
         accessToken: process.env.AMPLIFY_ACCESS_TOKEN,
         env: ctx.env,
+        tags: appTags(ctx),
       }),
       opts,
     );

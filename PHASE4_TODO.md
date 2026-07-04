@@ -25,7 +25,7 @@ Module flags waste and suggests cheaper targets.
 - [ ] Per-team build concurrency limits
 
 ## 3. Quotas & Limits
-- [ ] Enforce `maxAppsPerTeam`, max concurrent builds, max previews, resource ceilings
+- [~] Enforce `maxAppsPerTeam` on project create (400 when exceeded) ✓; max concurrent builds / max previews / resource ceilings pending
 - [ ] Soft warnings + hard blocks in UI + API
 - [ ] Admin override path (audited)
 - [ ] Tie quotas to Costs Module budgets
