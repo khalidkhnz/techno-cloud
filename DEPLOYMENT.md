@@ -48,15 +48,13 @@ aws ssm put-parameter --name /td-dev/PULUMI_CONFIG_PASSPHRASE --type SecureStrin
 
 ## 4. Package the API bundle
 
-> ⚠️ **Packaging**: the platform Lambdas (`infra/platform.ts`) point `code` at `apps/api/dist`.
-> `nest build` alone is **not** self-contained — bundle dependencies first (esbuild targeting each
-> handler, or ship `node_modules` via a Lambda layer). Produce a self-contained `apps/api/dist`
-> (handlers: `lambda.handler`, `workers/*.handler`, `scheduled/*.handler`) before `pulumi up`.
+The platform Lambdas (`infra/platform.ts`) load `apps/api/dist-lambda` — the self-contained esbuild
+bundle (deps inlined, decorator metadata preserved for Nest DI). Produce it before `pulumi up`:
 
 ```bash
 pnpm install --frozen-lockfile
 pnpm build
-# + your bundling step producing a self-contained apps/api/dist
+pnpm --filter @techno-deployer/api bundle   # → apps/api/dist-lambda/*.mjs
 ```
 
 ## 5. Provision

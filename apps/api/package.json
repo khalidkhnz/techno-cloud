@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "nest start --watch",
     "build": "nest build",
+    "bundle": "node esbuild.mjs",
     "start": "node dist/main.js",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist *.tsbuildinfo"
@@ -29,8 +30,10 @@
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
+    "@anatine/esbuild-decorators": "^0.2.19",
     "@nestjs/cli": "^10.4.0",
     "@types/aws-lambda": "^8.10.145",
+    "esbuild": "^0.24.0",
     "@types/express": "^4.17.21",
     "@types/node": "^22.7.0",
     "@types/nodemailer": "^6.4.16",

@@ -8,17 +8,21 @@ import { repository } from "./registry.js";
 const accountId = aws.getCallerIdentityOutput().accountId;
 const region = aws.getRegionOutput().name;
 
-const assumeRole = (service: string): string =>
-  JSON.stringify({
-    Version: "2012-10-17",
-    Statement: [
-      {
-        Effect: "Allow",
-        Principal: { Service: service },
-        Action: "sts:AssumeRole",
-      },
-    ],
-  });
+// Trust policy scoped to this account (confused-deputy protection via aws:SourceAccount).
+const assumeRole = (service: string): pulumi.Output<string> =>
+  accountId.apply((acct) =>
+    JSON.stringify({
+      Version: "2012-10-17",
+      Statement: [
+        {
+          Effect: "Allow",
+          Principal: { Service: service },
+          Action: "sts:AssumeRole",
+          Condition: { StringEquals: { "aws:SourceAccount": acct } },
+        },
+      ],
+    }),
+  );
 
 /**
  * Permissions boundary that every Pulumi-created app role MUST carry. It caps what a

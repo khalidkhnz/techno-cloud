@@ -12,19 +12,22 @@ import { deployProject } from "./deploy.js";
  * The platform's OWN serverless compute: the NestJS API (Lambda + Function URL), the SQS build/
  * deploy workers, and the scheduled handlers (usage poller / alerts / reaper) on EventBridge.
  *
- * PACKAGING NOTE: `code` points at the built API bundle. The build step must produce a
- * self-contained bundle (deps included, e.g. esbuild or a node_modules layer) at that path — a bare
- * `nest build` dist is not self-contained. This is wired at AWS-bring-up time (see DEPLOYMENT.md).
+ * `code` points at `apps/api/dist-lambda` — the self-contained esbuild bundle (deps inlined,
+ * decorator metadata preserved for Nest DI). Produce it with `pnpm --filter @techno-deployer/api
+ * bundle` before `pulumi up`. Handlers are `.mjs` (ESM); Lambda resolves `lambda.handler` → lambda.mjs.
  */
 const config = new pulumi.Config();
 const databaseUrl = config.getSecret("databaseUrl") ?? pulumi.output("");
 const betterAuthSecret = config.getSecret("betterAuthSecret") ?? pulumi.output("");
 const controlRepo = config.get("controlRepo") ?? "";
 
+const accountId = aws.getCallerIdentityOutput().accountId;
 const RUNTIME = "nodejs22.x";
-const API_BUNDLE = new pulumi.asset.FileArchive("../apps/api/dist");
+const API_BUNDLE = new pulumi.asset.FileArchive("../apps/api/dist-lambda");
 
 // AWS_REGION is a reserved Lambda env var — do NOT set it here (Lambda injects it).
+// NOTE: DATABASE_URL is set here for simplicity; for stronger isolation, source it from an SSM
+// SecureString / Secrets Manager encrypted with a CMK and fetch at cold-start (PHASE4 §7).
 const commonEnv: Record<string, pulumi.Input<string>> = {
   APP_PREFIX: prefix,
   APP_BOUNDARY_ARN: appBoundary.arn,
@@ -40,10 +43,19 @@ const commonEnv: Record<string, pulumi.Input<string>> = {
   BASE_DOMAIN: baseDomain,
   MAIL_FROM: `no-reply@${baseDomain}`,
   DATABASE_URL: databaseUrl,
+};
+
+// Only the API verifies sessions — keep the auth-signing secret out of workers/schedulers.
+const apiEnv: Record<string, pulumi.Input<string>> = {
+  ...commonEnv,
   BETTER_AUTH_SECRET: betterAuthSecret,
 };
 
-function fn(name: string, handler: string, opts?: { timeout?: number; memoryMb?: number }) {
+function fn(
+  name: string,
+  handler: string,
+  opts?: { timeout?: number; memoryMb?: number; env?: Record<string, pulumi.Input<string>> },
+) {
   return new aws.lambda.Function(name, {
     name: `${prefix}-${name}`,
     runtime: RUNTIME,
@@ -53,17 +65,25 @@ function fn(name: string, handler: string, opts?: { timeout?: number; memoryMb?:
     code: API_BUNDLE,
     timeout: opts?.timeout ?? 30,
     memorySize: opts?.memoryMb ?? 512,
-    environment: { variables: commonEnv },
+    environment: { variables: opts?.env ?? commonEnv },
     tags,
   });
 }
 
 // --- API (Function URL) ---
-export const api = fn("api", "lambda.handler");
+export const api = fn("api", "lambda.handler", { env: apiEnv });
+// CORS restricted to the frontend origin; the API is otherwise protected by application-layer
+// auth (Better Auth sessions + guards) and signed webhooks. Front with CloudFront/WAF for
+// rate-limiting + a stable domain in hardening (PHASE4 §7).
 export const apiUrl = new aws.lambda.FunctionUrl("api", {
   functionName: api.name,
   authorizationType: "NONE",
-  cors: { allowOrigins: ["*"], allowMethods: ["*"], allowHeaders: ["*"] },
+  cors: {
+    allowOrigins: [`https://app.${baseDomain}`],
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowHeaders: ["authorization", "content-type"],
+    allowCredentials: true,
+  },
 });
 
 // --- SQS workers ---
@@ -84,12 +104,19 @@ new aws.lambda.EventSourceMapping("deploy-worker", {
 // --- Scheduled handlers (EventBridge Scheduler) ---
 const schedulerRole = new aws.iam.Role("scheduler-role", {
   name: `${prefix}-scheduler`,
-  assumeRolePolicy: JSON.stringify({
-    Version: "2012-10-17",
-    Statement: [
-      { Effect: "Allow", Principal: { Service: "scheduler.amazonaws.com" }, Action: "sts:AssumeRole" },
-    ],
-  }),
+  assumeRolePolicy: accountId.apply((acct) =>
+    JSON.stringify({
+      Version: "2012-10-17",
+      Statement: [
+        {
+          Effect: "Allow",
+          Principal: { Service: "scheduler.amazonaws.com" },
+          Action: "sts:AssumeRole",
+          Condition: { StringEquals: { "aws:SourceAccount": acct } },
+        },
+      ],
+    }),
+  ),
   tags,
 });
 

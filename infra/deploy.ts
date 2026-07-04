@@ -26,11 +26,11 @@ phases:
       - git clone --depth 1 "$CONTROL_REPO" app
       - cd app
       - pnpm install --frozen-lockfile
-      - pnpm --filter @techno-deployer/api build
+      - pnpm --filter @techno-deployer/api bundle
   build:
     commands:
       - export PATH="$PATH:$HOME/.pulumi/bin"
-      - node apps/api/dist/deploy-entrypoint.js
+      - node app/apps/api/dist-lambda/deploy-entrypoint.mjs
 `;
 
 export const deployProject = new aws.codebuild.Project("deploy", {
