@@ -29,10 +29,10 @@ and the Costs Module shows per-app estimates + free-tier meters with alerts.
 - [~] Target picker shows **cost estimate per target** ✓ (via `/estimates`); recommended-default wiring (detection) pending
 
 ## 4. Environment & Secrets
-- [ ] `EnvVar`, `Secret` scoped by project + environment (prod/preview/dev)
-- [ ] Store in **SSM Parameter Store (standard, free)**; Secrets Manager only when rotation needed
-- [ ] Inject into Lambda / Amplify / task env at deploy time
-- [ ] UI: add/edit/remove; values write-once, never rendered back; audit access
+- [x] `env_vars` table scoped by project + environment (scope enum prod/preview/dev); CRUD API under `/projects/:id/env`
+- [x] Secrets → **SSM Parameter Store** SecureString (DB stores the param path); plain vars stored inline
+- [ ] Inject into Lambda / Amplify / task env at deploy time _(needs driver `deploy()`)_
+- [~] UI: add/remove ✓, secret values masked `***` and never returned; audit-on-access pending
 
 ## 5. Environments
 - [ ] `Environment` records per project (production baseline)

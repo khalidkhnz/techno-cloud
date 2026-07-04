@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { api, type Deployment, type Project } from "../../../lib/api";
+import { api, type Deployment, type EnvVar, type Project } from "../../../lib/api";
 
 const STATE_COLOR: Record<Deployment["state"], string> = {
   queued: "#888",
@@ -17,12 +17,33 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
   const { id } = use(params);
   const [project, setProject] = useState<Project | null>(null);
   const [deployments, setDeployments] = useState<Deployment[]>([]);
+  const [envVars, setEnvVars] = useState<EnvVar[]>([]);
+  const [ek, setEk] = useState("");
+  const [ev, setEv] = useState("");
+  const [eSecret, setESecret] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const loadEnv = () => api.listEnvVars(id).then(setEnvVars).catch(() => {});
 
   const load = () => {
     api.getProject(id).then(setProject).catch((e) => setError(String(e)));
     api.listDeployments(id).then(setDeployments).catch((e) => setError(String(e)));
+    loadEnv();
   };
+
+  async function addEnvVar(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    try {
+      await api.upsertEnvVar(id, { key: ek, value: ev, isSecret: eSecret });
+      setEk("");
+      setEv("");
+      setESecret(false);
+      loadEnv();
+    } catch (e) {
+      setError(String(e));
+    }
+  }
 
   useEffect(() => {
     load();
@@ -69,6 +90,27 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
         ))}
         {deployments.length === 0 && <li style={{ color: "#888" }}>No deployments yet.</li>}
       </ul>
+
+      <h2 style={{ marginTop: "1.5rem" }}>Environment variables</h2>
+      <p style={{ color: "#888", fontSize: 12 }}>Scope: production. Secrets are stored in Parameter Store and shown as ***.</p>
+      <ul>
+        {envVars.map((v) => (
+          <li key={v.id}>
+            <code>{v.key}</code> = <code>{v.value}</code>
+            {v.isSecret && <span style={{ color: "#b8860b" }}> (secret)</span>}{" "}
+            <button onClick={() => api.deleteEnvVar(id, v.key).then(loadEnv)}>remove</button>
+          </li>
+        ))}
+        {envVars.length === 0 && <li style={{ color: "#888" }}>No variables.</li>}
+      </ul>
+      <form onSubmit={addEnvVar} style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+        <input placeholder="KEY" value={ek} onChange={(e) => setEk(e.target.value)} required />
+        <input placeholder="value" value={ev} onChange={(e) => setEv(e.target.value)} required />
+        <label style={{ fontSize: 13 }}>
+          <input type="checkbox" checked={eSecret} onChange={(e) => setESecret(e.target.checked)} /> secret
+        </label>
+        <button type="submit">Add</button>
+      </form>
     </main>
   );
 }

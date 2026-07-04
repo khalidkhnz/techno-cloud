@@ -144,6 +144,17 @@ export const deployments = pgTable("deployments", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const envVars = pgTable("env_vars", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  projectId: uuid("project_id").references(() => projects.id).notNull(),
+  scope: envEnum("scope").notNull().default("production"),
+  key: text("key").notNull(),
+  // Inline value for plain vars; SSM Parameter Store path for secrets (isSecret = true).
+  value: text("value").notNull(),
+  isSecret: boolean("is_secret").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const platformConfig = pgTable("platform_config", {
   id: integer("id").primaryKey().default(1),
   config: jsonb("config").notNull(),

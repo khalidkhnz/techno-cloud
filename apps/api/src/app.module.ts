@@ -5,6 +5,8 @@ import { ProjectsModule } from "./projects/projects.module.js";
 import { DeploymentsModule } from "./deployments/deployments.module.js";
 import { InvitesModule } from "./invites/invites.module.js";
 import { EstimatesModule } from "./estimates/estimates.module.js";
+import { EnvVarsModule } from "./env-vars/env-vars.module.js";
+import { DetectModule } from "./detect/detect.module.js";
 import { PlatformConfigModule } from "./platform-config/platform-config.module.js";
 
 /**
@@ -18,6 +20,8 @@ import { PlatformConfigModule } from "./platform-config/platform-config.module.j
     DeploymentsModule,
     InvitesModule,
     EstimatesModule,
+    EnvVarsModule,
+    DetectModule,
     PlatformConfigModule,
   ],
   controllers: [HealthController],

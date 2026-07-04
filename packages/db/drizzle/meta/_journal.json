@@ -15,6 +15,13 @@
       "when": 1783181947015,
       "tag": "0001_pale_juggernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783185468717,
+      "tag": "0002_melodic_gargoyle",
+      "breakpoints": true
     }
   ]
 }

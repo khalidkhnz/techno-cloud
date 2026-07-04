@@ -49,4 +49,24 @@ export const api = {
     req<{ id: string; email: string }>("/invites", { method: "POST", body: JSON.stringify(body) }),
   getEstimates: () =>
     req<Record<string, { monthlyLowUsd: number; monthlyHighUsd: number }>>("/estimates"),
+  listEnvVars: (projectId: string) =>
+    req<EnvVar[]>(`/projects/${projectId}/env?scope=production`),
+  upsertEnvVar: (projectId: string, body: { key: string; value: string; isSecret: boolean }) =>
+    req<EnvVar>(`/projects/${projectId}/env`, {
+      method: "PUT",
+      body: JSON.stringify({ ...body, scope: "production" }),
+    }),
+  deleteEnvVar: (projectId: string, key: string) =>
+    req<{ ok: boolean }>(
+      `/projects/${projectId}/env?scope=production&key=${encodeURIComponent(key)}`,
+      { method: "DELETE" },
+    ),
 };
+
+export interface EnvVar {
+  id: string;
+  scope: string;
+  key: string;
+  isSecret: boolean;
+  value: string;
+}
