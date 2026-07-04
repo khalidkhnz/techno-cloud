@@ -15,7 +15,7 @@ the Costs Module reconciles estimated vs actual spend per project and enforces b
 - [ ] Default previews to **serverless targets** (Lambda/Amplify/Static) to keep them ~free
 - [ ] Assign preview subdomain (`<app>-pr-<n>.deploy.internal`)
 - [ ] Post preview URL back as commit/PR comment via SourceProvider
-- [ ] **Reaper** (EventBridge Scheduler → Lambda): destroy on PR merge/close OR after `previewTTLHours`
+- [x] **Reaper handler** (`scheduled/reaper`): finds preview envs whose latest deploy is older than `previewTtlHours` → triggers destroy (deploy CodeBuild `MODE=destroy`) → cleans DB _(EventBridge schedule + PR-close trigger wired at AWS setup)_
 - [ ] `previews.enabled` flag gates the path; max-previews-per-project guardrail
 
 ## 2. Custom Domains + Auto TLS

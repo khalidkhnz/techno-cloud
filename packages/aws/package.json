@@ -17,6 +17,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
+    "@aws-sdk/client-cloudwatch": "^3.670.0",
     "@aws-sdk/client-cloudwatch-logs": "^3.670.0",
     "@aws-sdk/client-codebuild": "^3.670.0",
     "@aws-sdk/client-dynamodb": "^3.670.0",

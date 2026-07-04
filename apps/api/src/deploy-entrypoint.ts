@@ -36,11 +36,19 @@ async function main(): Promise<void> {
     .where(eq(environments.id, deployment.environmentId));
   const scope = (environment?.kind ?? "production") as EnvironmentKind;
 
-  await db.update(deployments).set({ state: "deploying" }).where(eq(deployments.id, deploymentId));
-
   const target = createTargetRegistry().get(project.target as DeployTargetKind);
-  const env = await resolveEnv(project.id, scope);
   const lockId = `${project.id}:${deployment.environmentId}`;
+  const stack = `${project.id}-${scope}`;
+
+  // Destroy mode (used by the preview reaper): tear the stack down and mark destroyed.
+  if (process.env.MODE === "destroy") {
+    await withLock(lockId, () => target.destroy(stack));
+    await db.update(deployments).set({ state: "destroyed" }).where(eq(deployments.id, deploymentId));
+    return;
+  }
+
+  await db.update(deployments).set({ state: "deploying" }).where(eq(deployments.id, deploymentId));
+  const env = await resolveEnv(project.id, scope);
 
   try {
     const result = await withLock(lockId, () =>

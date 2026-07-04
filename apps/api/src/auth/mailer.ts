@@ -40,3 +40,7 @@ export function sendInviteEmail(email: string, url: string): Promise<void> {
     `You've been invited. Accept your invite and sign in here:\n${url}`,
   );
 }
+
+export function sendAlertEmail(email: string, subject: string, body: string): Promise<void> {
+  return send(email, subject, body);
+}

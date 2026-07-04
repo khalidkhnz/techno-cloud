@@ -48,8 +48,8 @@ and the Costs Module shows per-app estimates + free-tier meters with alerts.
 - [x] Rate card (`rates.ts`) seeded from `PRICING_REFERENCE.md` with `asOf` + source URLs + `FREE_TIER` allowances
 - [x] `estimateCost()` implemented for **all six targets** (lambda/fargate/ec2/static-cdn/apprunner/amplify) + surfaced in UI target picker via `/estimates` endpoint
 - [ ] Resource tagging in Pulumi: `td:project/team/env/deploymentId/target`
-- [~] **Free-tier meters**: catalog from `FREE_TIER` + `meterStatus` (80/95/100%) + `GET /meters` (usage+status) + `PUT /meters/usage` ingest; CloudWatch/Neon usage poller pending
-- [~] Alert evaluation: `summarizeAlerts`/`isBreached` + `GET /meters/alerts` (breached meters + rollup) ✓; EventBridge Scheduler → Lambda → Nodemailer delivery pending (needs AWS)
+- [x] **Free-tier meters**: catalog + `meterStatus` + `GET /meters` + `PUT /meters/usage` ingest + **usage poller handler** (`scheduled/usage-poller` — CloudWatch `getMetricSum` → meter upsert) _(EventBridge schedule wired at AWS setup)_
+- [x] Alert evaluation + delivery: `summarizeAlerts`/`isBreached` + `GET /meters/alerts` + **alert handler** (`scheduled/alerts` — emails admin via Nodemailer on breach) _(EventBridge schedule wired at AWS setup)_
 - [~] Dashboard: `/costs` page with **meter bars** ✓; per-project cost estimate + overview pending
 
 ## 8. Feature Flags Expansion
