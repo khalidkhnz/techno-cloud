@@ -12,6 +12,7 @@ export interface CreateProjectDto {
   target?: DeployTargetKind;
   source: SourceRef;
   buildConfig?: BuildConfig;
+  notifyEmail?: string;
 }
 
 @Injectable()
@@ -55,6 +56,7 @@ export class ProjectsService {
         target,
         source: dto.source,
         buildConfig: dto.buildConfig ?? null,
+        notifyEmail: dto.notifyEmail ?? null,
       })
       .returning();
     return row;

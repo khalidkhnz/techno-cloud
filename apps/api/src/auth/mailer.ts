@@ -44,3 +44,19 @@ export function sendInviteEmail(email: string, url: string): Promise<void> {
 export function sendAlertEmail(email: string, subject: string, body: string): Promise<void> {
   return send(email, subject, body);
 }
+
+export function sendDeployEmail(
+  email: string,
+  projectName: string,
+  state: "ready" | "failed",
+  url?: string,
+): Promise<void> {
+  const ok = state === "ready";
+  return send(
+    email,
+    `Deploy ${ok ? "succeeded" : "failed"}: ${projectName}`,
+    ok
+      ? `Your deployment of "${projectName}" is live${url ? ` at ${url}` : ""}.`
+      : `Your deployment of "${projectName}" failed. Check the build/deploy logs.`,
+  );
+}

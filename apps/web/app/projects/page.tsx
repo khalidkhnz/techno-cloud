@@ -18,6 +18,7 @@ export default function ProjectsPage() {
   const [repo, setRepo] = useState("");
   const [buildCmd, setBuildCmd] = useState("");
   const [startCmd, setStartCmd] = useState("");
+  const [notifyEmail, setNotifyEmail] = useState("");
   const [estimates, setEstimates] = useState<
     Record<string, { monthlyLowUsd: number; monthlyHighUsd: number }>
   >({});
@@ -60,11 +61,13 @@ export default function ProjectsPage() {
         target,
         source: { provider: "github", repo },
         buildConfig,
+        notifyEmail: notifyEmail || undefined,
       });
       setName("");
       setRepo("");
       setBuildCmd("");
       setStartCmd("");
+      setNotifyEmail("");
       load();
     } catch (e) {
       setError(String(e));
@@ -107,6 +110,7 @@ export default function ProjectsPage() {
         )}
         <input className="input" placeholder="build command (optional, Nixpacks)" value={buildCmd} onChange={(e) => setBuildCmd(e.target.value)} />
         <input className="input" placeholder="start command (optional, Nixpacks)" value={startCmd} onChange={(e) => setStartCmd(e.target.value)} />
+        <input className="input" type="email" placeholder="notify email (optional)" value={notifyEmail} onChange={(e) => setNotifyEmail(e.target.value)} />
         <button className="btn" type="submit">
           Create project
         </button>

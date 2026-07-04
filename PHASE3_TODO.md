@@ -49,8 +49,8 @@ the Costs Module reconciles estimated vs actual spend per project and enforces b
 - [ ] Neon + Amplify actuals via their APIs; window-expiry warnings (12-mo / free-plan)
 
 ## 7. Notifications
-- [ ] Deploy success/failure notifications (email via Nodemailer; Slack hook stub)
-- [ ] Per-user / per-project notification preferences
+- [x] Deploy success/failure email via Nodemailer (sent from the deploy entrypoint on ready/failed)
+- [~] Per-project notify email (`project.notifyEmail`, ADMIN_EMAIL fallback) ✓; per-user prefs + Slack hook pending
 
 ## 8. Verify
 - [ ] Preview lifecycle: open PR → URL → merge → auto-destroy

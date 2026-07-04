@@ -41,6 +41,7 @@ export const api = {
     target?: string;
     source: unknown;
     buildConfig?: { installCommand?: string; buildCommand?: string; startCommand?: string };
+    notifyEmail?: string;
   }) => req<Project>("/projects", { method: "POST", body: JSON.stringify(body) }),
   listDeployments: (projectId: string) =>
     req<Deployment[]>(`/projects/${projectId}/deployments`),

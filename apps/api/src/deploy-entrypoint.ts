@@ -8,7 +8,9 @@
 import { and, db, deployments, environments, envVars, eq, projects } from "@techno-deployer/db";
 import { getSecret, withLock } from "@techno-deployer/aws";
 import type { DeployContext, DeployTargetKind, EnvironmentKind, SourceRef } from "@techno-deployer/core";
+import { env } from "@techno-deployer/env";
 import { createTargetRegistry } from "@techno-deployer/targets";
+import { sendDeployEmail } from "./auth/mailer.js";
 
 async function resolveEnv(projectId: string, scope: EnvironmentKind): Promise<Record<string, string>> {
   const rows = await db
@@ -72,14 +74,18 @@ async function main(): Promise<void> {
 
   await db.update(deployments).set({ state: "deploying" }).where(eq(deployments.id, deploymentId));
 
+  const notify = project.notifyEmail ?? env.ADMIN_EMAIL;
+
   try {
     const result = await withLock(lockId, () => target.deploy(ctx));
     await db
       .update(deployments)
       .set({ state: "ready", url: result.url, targetRef: result.targetRef })
       .where(eq(deployments.id, deploymentId));
+    if (notify) await sendDeployEmail(notify, project.name, "ready", result.url).catch(() => {});
   } catch (err) {
     await db.update(deployments).set({ state: "failed" }).where(eq(deployments.id, deploymentId));
+    if (notify) await sendDeployEmail(notify, project.name, "failed").catch(() => {});
     throw err;
   }
 }

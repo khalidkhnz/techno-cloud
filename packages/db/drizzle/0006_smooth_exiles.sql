@@ -1,0 +1,1 @@
+ALTER TABLE "projects" ADD COLUMN "notify_email" text;

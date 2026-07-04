@@ -43,6 +43,13 @@
       "when": 1783198065434,
       "tag": "0005_nostalgic_starjammers",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783198972761,
+      "tag": "0006_smooth_exiles",
+      "breakpoints": true
     }
   ]
 }
