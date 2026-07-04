@@ -8,6 +8,7 @@ import type { DeployTargetKind } from "./config.js";
 import type { CostEstimate } from "./cost.js";
 import type {
   DeployContext,
+  DeployOptions,
   DeployResult,
   DeploymentStatus,
   LogLine,
@@ -29,7 +30,7 @@ export interface DeployTarget {
   /** 'repo' = the driver hands the repo to a managed builder (Amplify). */
   readonly artifactType: "image" | "zip" | "static" | "repo";
 
-  deploy(ctx: DeployContext): Promise<DeployResult>;
+  deploy(ctx: DeployContext, opts?: DeployOptions): Promise<DeployResult>;
   getStatus(deploymentId: string): Promise<DeploymentStatus>;
   streamLogs(deploymentId: string): AsyncIterable<LogLine>;
   rollback(toDeploymentId: string): Promise<void>;

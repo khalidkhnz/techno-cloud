@@ -16,10 +16,24 @@ export interface RunOptions {
   stackName: string;
   program: PulumiFn;
   destroy?: boolean;
+  /** Run `pulumi preview` instead of `up` — reports pending changes (drift) without applying. */
+  preview?: boolean;
 }
 
-/** Runs `pulumi up` (or `destroy`) for an inline program and returns the stack outputs. */
-export async function runStack(opts: RunOptions): Promise<Record<string, unknown>> {
+export interface RunResult {
+  outputs: Record<string, unknown>;
+  /** Number of non-`same` resource changes (preview: pending; up: applied). */
+  changes: number;
+}
+
+function countChanges(summary: Record<string, number> | undefined): number {
+  return Object.entries(summary ?? {})
+    .filter(([op]) => op !== "same")
+    .reduce((sum, [, n]) => sum + (n ?? 0), 0);
+}
+
+/** Runs `pulumi up`/`preview`/`destroy` for an inline program and returns outputs + change count. */
+export async function runStack(opts: RunOptions): Promise<RunResult> {
   const stack = await LocalWorkspace.createOrSelectStack(
     { stackName: opts.stackName, projectName: PROJECT_NAME, program: opts.program },
     {
@@ -34,7 +48,12 @@ export async function runStack(opts: RunOptions): Promise<Record<string, unknown
 
   if (opts.destroy) {
     await stack.destroy({ onOutput: () => undefined });
-    return {};
+    return { outputs: {}, changes: 0 };
+  }
+
+  if (opts.preview) {
+    const pre = await stack.preview({ onOutput: () => undefined });
+    return { outputs: {}, changes: countChanges(pre.changeSummary) };
   }
 
   const result = await stack.up({ onOutput: () => undefined });
@@ -42,5 +61,5 @@ export async function runStack(opts: RunOptions): Promise<Record<string, unknown
   for (const [key, value] of Object.entries(result.outputs)) {
     outputs[key] = value.value;
   }
-  return outputs;
+  return { outputs, changes: countChanges(result.summary.resourceChanges) };
 }

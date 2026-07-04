@@ -50,6 +50,14 @@ export interface DeployResult {
   url: string;
   targetRef: string; // opaque driver handle (stack name, service arn, amplify app id, ...)
   state: DeploymentState;
+  /** Set on a preview (drift-check) run: true if the live stack diverges from desired. */
+  drift?: boolean;
+}
+
+/** Options for a deploy driver run. */
+export interface DeployOptions {
+  /** Run `pulumi preview` instead of `up` — reports drift without changing anything. */
+  preview?: boolean;
 }
 
 export interface DeploymentStatus {

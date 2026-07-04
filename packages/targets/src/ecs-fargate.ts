@@ -1,5 +1,6 @@
 import type {
   DeployContext,
+  DeployOptions,
   DeployResult,
   DeploymentStatus,
   DeployTarget,
@@ -7,25 +8,21 @@ import type {
   TargetConfig,
 } from "@techno-deployer/core";
 import { estimateFargate } from "@techno-deployer/costs";
-import { ecsFargateProgram, runStack, stackName } from "@techno-deployer/pulumi";
-import { appName, boundaryArn } from "./util.js";
+import { ecsFargateProgram } from "@techno-deployer/pulumi";
+import { appName, boundaryArn, runDeploy, runDestroy } from "./util.js";
 
 export class EcsFargateTarget implements DeployTarget {
   readonly kind = "ecs-fargate" as const;
   readonly artifactType = "image" as const;
 
-  async deploy(ctx: DeployContext): Promise<DeployResult> {
+  async deploy(ctx: DeployContext, opts?: DeployOptions): Promise<DeployResult> {
     const name = appName(ctx);
-    const outputs = await runStack({
-      stackName: stackName(ctx.project.id, ctx.environment),
-      program: ecsFargateProgram({
-        name,
-        imageUri: ctx.artifact.ref,
-        boundaryArn: boundaryArn(),
-        env: ctx.env,
-      }),
-    });
-    return { url: String(outputs.url ?? ""), targetRef: name, state: "ready" };
+    return runDeploy(
+      ctx,
+      name,
+      ecsFargateProgram({ name, imageUri: ctx.artifact.ref, boundaryArn: boundaryArn(), env: ctx.env }),
+      opts,
+    );
   }
 
   async getStatus(_deploymentId: string): Promise<DeploymentStatus> {
@@ -41,7 +38,7 @@ export class EcsFargateTarget implements DeployTarget {
   }
 
   async destroy(deploymentId: string): Promise<void> {
-    await runStack({ stackName: deploymentId, program: async () => ({}), destroy: true });
+    await runDestroy(deploymentId);
   }
 
   estimateCost(config: TargetConfig) {

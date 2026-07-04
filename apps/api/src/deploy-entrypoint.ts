@@ -7,7 +7,7 @@
 
 import { and, db, deployments, environments, envVars, eq, projects } from "@techno-deployer/db";
 import { getSecret, withLock } from "@techno-deployer/aws";
-import type { DeployTargetKind, EnvironmentKind, SourceRef } from "@techno-deployer/core";
+import type { DeployContext, DeployTargetKind, EnvironmentKind, SourceRef } from "@techno-deployer/core";
 import { createTargetRegistry } from "@techno-deployer/targets";
 
 async function resolveEnv(projectId: string, scope: EnvironmentKind): Promise<Record<string, string>> {
@@ -47,28 +47,33 @@ async function main(): Promise<void> {
     return;
   }
 
-  await db.update(deployments).set({ state: "deploying" }).where(eq(deployments.id, deploymentId));
   const env = await resolveEnv(project.id, scope);
+  const ctx: DeployContext = {
+    project: {
+      id: project.id,
+      teamId: project.teamId,
+      name: project.name,
+      source: project.source as SourceRef,
+      target: project.target as DeployTargetKind,
+    },
+    environment: scope,
+    deploymentId,
+    artifact: { type: target.artifactType, ref: process.env.IMAGE_URI ?? deployment.imageUri ?? "" },
+    env,
+  };
+
+  // Preview mode (drift check): report divergence from desired state without applying.
+  if (process.env.MODE === "preview") {
+    const result = await withLock(lockId, () => target.deploy(ctx, { preview: true }));
+    // eslint-disable-next-line no-console
+    console.log(`[drift] ${stack}: ${result.drift ? "DETECTED" : "none"}`);
+    return;
+  }
+
+  await db.update(deployments).set({ state: "deploying" }).where(eq(deployments.id, deploymentId));
 
   try {
-    const result = await withLock(lockId, () =>
-      target.deploy({
-        project: {
-          id: project.id,
-          teamId: project.teamId,
-          name: project.name,
-          source: project.source as SourceRef,
-          target: project.target as DeployTargetKind,
-        },
-        environment: scope,
-        deploymentId,
-        artifact: {
-          type: target.artifactType,
-          ref: process.env.IMAGE_URI ?? deployment.imageUri ?? "",
-        },
-        env,
-      }),
-    );
+    const result = await withLock(lockId, () => target.deploy(ctx));
     await db
       .update(deployments)
       .set({ state: "ready", url: result.url, targetRef: result.targetRef })

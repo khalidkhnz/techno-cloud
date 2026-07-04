@@ -37,7 +37,7 @@ Module flags waste and suggests cheaper targets.
 - [ ] `estimateCost()` + flag wiring (cost-flagged as always-on)
 
 ## 5. Drift Detection & Reconciliation
-- [ ] Scheduled `pulumi preview` per active stack (EventBridge → CodeBuild) to detect drift
+- [x] Scheduled `pulumi preview` per active stack: `scheduled/drift` (daily) → deploy CodeBuild `MODE=preview` → drift reported in logs; `runStack` returns change counts, driver `deploy(ctx, {preview})`
 - [ ] Surface drift in UI; one-click reconcile (`up`)
 - [ ] Alert on unexpected drift (manual console changes)
 - [ ] Orphan-resource sweeper (resources with no owning stack)

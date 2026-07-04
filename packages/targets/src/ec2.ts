@@ -1,5 +1,6 @@
 import type {
   DeployContext,
+  DeployOptions,
   DeployResult,
   DeploymentStatus,
   DeployTarget,
@@ -7,20 +8,21 @@ import type {
   TargetConfig,
 } from "@techno-deployer/core";
 import { estimateEc2 } from "@techno-deployer/costs";
-import { ec2Program, runStack, stackName } from "@techno-deployer/pulumi";
-import { appName, boundaryArn } from "./util.js";
+import { ec2Program } from "@techno-deployer/pulumi";
+import { appName, boundaryArn, runDeploy, runDestroy } from "./util.js";
 
 export class Ec2Target implements DeployTarget {
   readonly kind = "ec2" as const;
   readonly artifactType = "image" as const;
 
-  async deploy(ctx: DeployContext): Promise<DeployResult> {
+  async deploy(ctx: DeployContext, opts?: DeployOptions): Promise<DeployResult> {
     const name = appName(ctx);
-    const outputs = await runStack({
-      stackName: stackName(ctx.project.id, ctx.environment),
-      program: ec2Program({ name, imageUri: ctx.artifact.ref, boundaryArn: boundaryArn() }),
-    });
-    return { url: String(outputs.url ?? ""), targetRef: name, state: "ready" };
+    return runDeploy(
+      ctx,
+      name,
+      ec2Program({ name, imageUri: ctx.artifact.ref, boundaryArn: boundaryArn() }),
+      opts,
+    );
   }
 
   async getStatus(_deploymentId: string): Promise<DeploymentStatus> {
@@ -36,7 +38,7 @@ export class Ec2Target implements DeployTarget {
   }
 
   async destroy(deploymentId: string): Promise<void> {
-    await runStack({ stackName: deploymentId, program: async () => ({}), destroy: true });
+    await runDestroy(deploymentId);
   }
 
   estimateCost(config: TargetConfig) {

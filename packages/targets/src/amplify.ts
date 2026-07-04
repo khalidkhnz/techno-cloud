@@ -6,6 +6,7 @@
 
 import type {
   DeployContext,
+  DeployOptions,
   DeployResult,
   DeploymentStatus,
   DeployTarget,
@@ -14,9 +15,8 @@ import type {
   TargetConfig,
 } from "@techno-deployer/core";
 import { estimateAmplify } from "@techno-deployer/costs";
-import { amplifyProgram, runStack, stackName } from "@techno-deployer/pulumi";
-
-const APP_PREFIX = () => process.env.APP_PREFIX ?? "td-dev";
+import { amplifyProgram } from "@techno-deployer/pulumi";
+import { appName, runDeploy, runDestroy } from "./util.js";
 
 function repoUrl(source: SourceRef): string {
   const host =
@@ -32,20 +32,21 @@ export class AmplifyTarget implements DeployTarget {
   readonly kind = "amplify" as const;
   readonly artifactType = "repo" as const;
 
-  async deploy(ctx: DeployContext): Promise<DeployResult> {
-    const name = `${APP_PREFIX()}-app-${ctx.project.id.slice(0, 8)}-${ctx.environment}`;
+  async deploy(ctx: DeployContext, opts?: DeployOptions): Promise<DeployResult> {
+    const name = appName(ctx);
     const source = ctx.project.source;
-    const outputs = await runStack({
-      stackName: stackName(ctx.project.id, ctx.environment),
-      program: amplifyProgram({
+    return runDeploy(
+      ctx,
+      name,
+      amplifyProgram({
         name,
         repository: repoUrl(source),
         branch: source.ref ?? "main",
         accessToken: process.env.AMPLIFY_ACCESS_TOKEN,
         env: ctx.env,
       }),
-    });
-    return { url: String(outputs.url ?? ""), targetRef: name, state: "ready" };
+      opts,
+    );
   }
 
   async getStatus(_deploymentId: string): Promise<DeploymentStatus> {
@@ -61,7 +62,7 @@ export class AmplifyTarget implements DeployTarget {
   }
 
   async destroy(deploymentId: string): Promise<void> {
-    await runStack({ stackName: deploymentId, program: async () => ({}), destroy: true });
+    await runDestroy(deploymentId);
   }
 
   estimateCost(config: TargetConfig) {

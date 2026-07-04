@@ -5,6 +5,7 @@
 
 import type {
   DeployContext,
+  DeployOptions,
   DeployResult,
   DeploymentStatus,
   DeployTarget,
@@ -12,30 +13,21 @@ import type {
   TargetConfig,
 } from "@techno-deployer/core";
 import { estimateLambda } from "@techno-deployer/costs";
-import { lambdaProgram, runStack, stackName } from "@techno-deployer/pulumi";
-
-const APP_PREFIX = () => process.env.APP_PREFIX ?? "td-dev";
-
-function appName(ctx: DeployContext): string {
-  return `${APP_PREFIX()}-app-${ctx.project.id.slice(0, 8)}-${ctx.environment}`;
-}
+import { lambdaProgram } from "@techno-deployer/pulumi";
+import { appName, boundaryArn, runDeploy, runDestroy } from "./util.js";
 
 export class LambdaTarget implements DeployTarget {
   readonly kind = "lambda" as const;
   readonly artifactType = "image" as const;
 
-  async deploy(ctx: DeployContext): Promise<DeployResult> {
+  async deploy(ctx: DeployContext, opts?: DeployOptions): Promise<DeployResult> {
     const name = appName(ctx);
-    const outputs = await runStack({
-      stackName: stackName(ctx.project.id, ctx.environment),
-      program: lambdaProgram({
-        name,
-        imageUri: ctx.artifact.ref,
-        boundaryArn: process.env.APP_BOUNDARY_ARN ?? "",
-        env: ctx.env,
-      }),
-    });
-    return { url: String(outputs.url ?? ""), targetRef: name, state: "ready" };
+    return runDeploy(
+      ctx,
+      name,
+      lambdaProgram({ name, imageUri: ctx.artifact.ref, boundaryArn: boundaryArn(), env: ctx.env }),
+      opts,
+    );
   }
 
   async getStatus(_deploymentId: string): Promise<DeploymentStatus> {
@@ -52,9 +44,7 @@ export class LambdaTarget implements DeployTarget {
   }
 
   async destroy(deploymentId: string): Promise<void> {
-    // deploymentId is not the stack key here; callers pass `project:env` via a fuller context in
-    // the deploy worker. Destroy tears the stack down.
-    await runStack({ stackName: deploymentId, program: async () => ({}), destroy: true });
+    await runDestroy(deploymentId);
   }
 
   estimateCost(config: TargetConfig) {
