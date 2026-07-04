@@ -63,9 +63,9 @@ Module flags waste and suggests cheaper targets.
 
 ## 9. Costs Module v3 — see COSTS_MODULE.md
 - [ ] Cost anomaly detection (sudden spend spikes)
-- [ ] Rightsizing suggestions ("this Fargate app is idle 90% — move to Lambda, save ~$12/mo")
+- [x] Rightsizing suggestions — `suggestRightsizing` flags always-on targets (→ Lambda/Static) via `GET /costs/advice` + UI
 - [ ] Showback/chargeback per team
-- [ ] Rate-card staleness job (flag rates older than 90 days for re-verification)
+- [x] Rate-card staleness — `isRateCardStale` (>90 days) surfaced in `/costs/advice` + UI
 
 ## 10. Verify
 - [ ] Chaos: kill a worker mid-deploy → job recovers via DLQ/idempotency

@@ -20,6 +20,10 @@ export default function CostsPage() {
   const [snapshots, setSnapshots] = useState<CostSnapshot[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [budgetAmount, setBudgetAmount] = useState("");
+  const [advice, setAdvice] = useState<{
+    suggestions: { project: string; name: string; recommendation?: string }[];
+    rateCard: { asOf: string; stale: boolean };
+  } | null>(null);
 
   const loadBudgets = () => api.getBudgets().then(setBudgets).catch(() => {});
 
@@ -31,6 +35,7 @@ export default function CostsPage() {
     if (session) {
       api.getMeters().then(setMeters).catch(() => {});
       api.getCostSnapshots().then(setSnapshots).catch(() => {});
+      api.getCostAdvice().then(setAdvice).catch(() => {});
       loadBudgets();
     }
   }, [isPending, session, router]);
@@ -73,6 +78,25 @@ export default function CostsPage() {
         ))}
         {meters.length === 0 && <li style={{ color: "#888" }}>No meter data.</li>}
       </ul>
+
+      {advice && (advice.suggestions.length > 0 || advice.rateCard.stale) && (
+        <>
+          <h2 className="mt-8">Suggestions</h2>
+          <ul className="mt-2 space-y-1 text-sm">
+            {advice.suggestions.map((s) => (
+              <li key={s.project} className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2">
+                <strong>{s.name}</strong>: {s.recommendation}
+              </li>
+            ))}
+            {advice.rateCard.stale && (
+              <li className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2">
+                Pricing rate card (as of {advice.rateCard.asOf}) is &gt;90 days old — re-verify against
+                official AWS pricing.
+              </li>
+            )}
+          </ul>
+        </>
+      )}
 
       <h2 className="mt-8">Reconciled cost (Cost Explorer)</h2>
       <ul className="mt-2 divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">

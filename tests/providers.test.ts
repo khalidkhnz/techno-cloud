@@ -76,3 +76,38 @@ describe("ZipProvider", () => {
     expect(z.verifySignature({}, new Uint8Array(), "s")).toBe(false);
   });
 });
+
+describe("pull-request parsing", () => {
+  it("github opened / closed", () => {
+    const gh = new GithubProvider();
+    const opened = gh.parsePullRequest(
+      { "x-github-event": "pull_request" },
+      { action: "opened", number: 7, pull_request: { head: { ref: "feat", sha: "s1" } }, repository: { full_name: "a/b" } },
+    );
+    expect(opened).toEqual({ provider: "github", repo: "a/b", number: 7, ref: "feat", commit: "s1", action: "opened" });
+    const closed = gh.parsePullRequest(
+      { "x-github-event": "pull_request" },
+      { action: "closed", number: 7, pull_request: { head: { ref: "feat", sha: "s1" } }, repository: { full_name: "a/b" } },
+    );
+    expect(closed?.action).toBe("closed");
+    expect(gh.parsePullRequest({ "x-github-event": "push" }, {})).toBeNull();
+  });
+
+  it("gitlab merge request", () => {
+    const gl = new GitlabProvider();
+    const e = gl.parsePullRequest(
+      {},
+      { object_kind: "merge_request", object_attributes: { action: "open", iid: 3, source_branch: "dev", last_commit: { id: "c1" } }, project: { path_with_namespace: "g/p" } },
+    );
+    expect(e).toEqual({ provider: "gitlab", repo: "g/p", number: 3, ref: "dev", commit: "c1", action: "opened" });
+  });
+
+  it("bitbucket pull request", () => {
+    const bb = new BitbucketProvider();
+    const e = bb.parsePullRequest(
+      { "x-event-key": "pullrequest:created" },
+      { pullrequest: { id: 9, source: { branch: { name: "b" }, commit: { hash: "h1" } } }, repository: { full_name: "t/r" } },
+    );
+    expect(e).toEqual({ provider: "bitbucket", repo: "t/r", number: 9, ref: "b", commit: "h1", action: "opened" });
+  });
+});

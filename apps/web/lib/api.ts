@@ -66,6 +66,11 @@ export const api = {
   getPlatformConfig: () => req<PlatformConfig>("/platform-config"),
   getMeters: () => req<FreeTierMeter[]>("/meters"),
   getCostSnapshots: () => req<CostSnapshot[]>("/costs/snapshots"),
+  getCostAdvice: () =>
+    req<{
+      suggestions: { project: string; name: string; recommendation?: string }[];
+      rateCard: { asOf: string; stale: boolean };
+    }>("/costs/advice"),
   getBudgets: () => req<Budget[]>("/costs/budgets"),
   createBudget: (body: { scope: string; refId?: string; thresholdUsd: number }) =>
     req<Budget>("/costs/budgets", { method: "POST", body: JSON.stringify(body) }),

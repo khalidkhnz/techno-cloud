@@ -1,6 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from "@nestjs/common";
+import type { Request } from "express";
 import { AdminGuard, AuthGuard } from "../auth/auth.guard.js";
 import { CostsService, type CreateBudgetDto } from "./costs.service.js";
+
+type Authed = Request & { authUser?: { email: string } };
 
 @UseGuards(AuthGuard)
 @Controller("costs")
@@ -10,6 +13,11 @@ export class CostsController {
   @Get("snapshots")
   snapshots() {
     return this.costs.snapshots();
+  }
+
+  @Get("advice")
+  advice(@Req() req: Authed) {
+    return this.costs.advice(req.authUser?.email ?? "");
   }
 
   @Get("budgets")

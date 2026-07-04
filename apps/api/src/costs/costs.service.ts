@@ -1,6 +1,9 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { budgets, costSnapshots, desc, eq, type Db } from "@techno-deployer/db";
+import { budgets, costSnapshots, desc, eq, projects, type Db } from "@techno-deployer/db";
+import type { DeployTargetKind } from "@techno-deployer/core";
+import { AS_OF, isRateCardStale, suggestRightsizing } from "@techno-deployer/costs";
 import { DRIZZLE } from "../drizzle/drizzle.module.js";
+import { teamIdsForEmail } from "../auth/auth.guard.js";
 
 export interface CreateBudgetDto {
   scope: "project" | "global";
@@ -19,6 +22,22 @@ export class CostsService {
 
   listBudgets() {
     return this.db.select().from(budgets);
+  }
+
+  /** Rightsizing advice for the caller's always-on projects + rate-card freshness. */
+  async advice(email: string) {
+    const teams = await teamIdsForEmail(this.db, email);
+    const rows = teams.length
+      ? await this.db.select().from(projects)
+      : [];
+    const suggestions = rows
+      .filter((p) => teams.includes(p.teamId))
+      .map((p) => ({ project: p.id, name: p.name, ...suggestRightsizing(p.target as DeployTargetKind) }))
+      .filter((s) => s.recommendation);
+    return {
+      suggestions,
+      rateCard: { asOf: AS_OF, stale: isRateCardStale(AS_OF, Date.now()) },
+    };
   }
 
   async createBudget(dto: CreateBudgetDto) {

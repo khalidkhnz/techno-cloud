@@ -4,7 +4,9 @@ import {
   estimateFargate,
   estimateLambda,
   isBreached,
+  isRateCardStale,
   meterStatus,
+  suggestRightsizing,
   summarizeAlerts,
 } from "@techno-deployer/costs";
 
@@ -51,5 +53,22 @@ describe("alert evaluation", () => {
       { status: "exceeded" },
     ]);
     expect(s).toEqual({ warn: 2, alert: 1, exceeded: 1, breached: 4 });
+  });
+});
+
+describe("cost advice", () => {
+  it("flags always-on targets, not serverless ones", () => {
+    expect(suggestRightsizing("ecs-fargate")).not.toBeNull();
+    expect(suggestRightsizing("ec2")).not.toBeNull();
+    expect(suggestRightsizing("apprunner")).not.toBeNull();
+    expect(suggestRightsizing("lambda")).toBeNull();
+    expect(suggestRightsizing("static-cdn")).toBeNull();
+    expect(suggestRightsizing("amplify")).toBeNull();
+  });
+
+  it("detects a stale rate card", () => {
+    expect(isRateCardStale("2026-07-04", Date.parse("2026-07-10"), 90)).toBe(false);
+    expect(isRateCardStale("2026-01-01", Date.parse("2026-07-04"), 90)).toBe(true);
+    expect(isRateCardStale("not-a-date", Date.parse("2026-07-04"))).toBe(true);
   });
 });
