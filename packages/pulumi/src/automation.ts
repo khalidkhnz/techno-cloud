@@ -1,44 +1,46 @@
 /**
- * Pulumi Automation API wrapper. Runs INSIDE a CodeBuild job (not Lambda) to avoid the
- * 15-min limit. State: self-managed S3 backend; locks: DynamoDB. See PLAN.md §5.
- *
- * One stack per `project:environment`. Stubbed — real inline programs land per target in Phase 1.
+ * Pulumi Automation API runner. Executes an inline program against the self-managed S3 backend.
+ * Intended to run INSIDE a CodeBuild job (where the pulumi CLI is available) — the deploy worker
+ * triggers that job. One stack per `project:environment`. See PLAN.md §5.
  */
 
-export interface StackRef {
-  project: string;
-  environment: string;
-  stackName: string; // `${project}:${environment}`
-}
+import { LocalWorkspace, type PulumiFn } from "@pulumi/pulumi/automation/index.js";
 
-export interface UpResult {
-  outputs: Record<string, unknown>;
-  summary: string;
-}
-
-export interface PulumiRunner {
-  up(ref: StackRef, program: () => Promise<Record<string, unknown>>): Promise<UpResult>;
-  destroy(ref: StackRef): Promise<void>;
-  preview(ref: StackRef): Promise<{ hasChanges: boolean }>;
-}
+const PROJECT_NAME = "techno-deployer-apps";
 
 export function stackName(project: string, environment: string): string {
-  return `${project}:${environment}`;
+  return `${project}-${environment}`;
 }
 
-/**
- * Placeholder runner. The real implementation uses `@pulumi/pulumi/automation`
- * (LocalWorkspace.createOrSelectStack) with the S3 backend configured via
- * PULUMI_BACKEND_URL and DynamoDB-based locking.
- */
-export class CodeBuildPulumiRunner implements PulumiRunner {
-  async up(): Promise<UpResult> {
-    throw new Error("CodeBuildPulumiRunner.up not implemented");
+export interface RunOptions {
+  stackName: string;
+  program: PulumiFn;
+  destroy?: boolean;
+}
+
+/** Runs `pulumi up` (or `destroy`) for an inline program and returns the stack outputs. */
+export async function runStack(opts: RunOptions): Promise<Record<string, unknown>> {
+  const stack = await LocalWorkspace.createOrSelectStack(
+    { stackName: opts.stackName, projectName: PROJECT_NAME, program: opts.program },
+    {
+      envVars: { PULUMI_CONFIG_PASSPHRASE: process.env.PULUMI_CONFIG_PASSPHRASE ?? "" },
+      projectSettings: {
+        name: PROJECT_NAME,
+        runtime: "nodejs",
+        backend: { url: process.env.PULUMI_BACKEND_URL ?? "" },
+      },
+    },
+  );
+
+  if (opts.destroy) {
+    await stack.destroy({ onOutput: () => undefined });
+    return {};
   }
-  async destroy(): Promise<void> {
-    throw new Error("CodeBuildPulumiRunner.destroy not implemented");
+
+  const result = await stack.up({ onOutput: () => undefined });
+  const outputs: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(result.outputs)) {
+    outputs[key] = value.value;
   }
-  async preview(): Promise<{ hasChanges: boolean }> {
-    throw new Error("CodeBuildPulumiRunner.preview not implemented");
-  }
+  return outputs;
 }

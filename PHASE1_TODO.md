@@ -61,12 +61,12 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 - [~] Handle build failures cleanly _(worker marks `failed`; CodeBuild-completion → deploy bridge pending)_
 
 ## 7. Pulumi Engine (`packages/pulumi` + `packages/targets`)
-- [ ] Automation API wrapper run **inside CodeBuild** (init workspace, select/create stack, up/destroy, outputs)
-- [ ] Self-managed **S3 state backend + DynamoDB lock** (provisioned in `infra/`)
-- [ ] Shared Route 53 zone + wildcard **ACM** cert (created once)
-- [ ] **lambda** DeployTarget: Lambda (image/zip from ECR/S3) + Function URL + subdomain record
-- [ ] **amplify** DeployTarget: Amplify app + branch connected to repo (Amplify managed build/host) + subdomain
-- [ ] `deploy()` returns URL + status; `destroy()` tears down; `streamLogs()` from log group
+- [x] Automation API wrapper (`runStack`) — LocalWorkspace inline program, S3 backend via `PULUMI_BACKEND_URL`, up/destroy + outputs (runs inside the deploy CodeBuild job)
+- [x] Self-managed **S3 state backend + DynamoDB lock** (provisioned in `infra/`)
+- [x] Shared Route 53 zone + wildcard **ACM** cert (created once)
+- [x] **lambda** DeployTarget: image Lambda (arm64) + boundary-scoped role + **Function URL** _(Route53 subdomain needs CloudFront in front — deferred)_
+- [x] **amplify** DeployTarget: Amplify app + branch connected to repo (managed build/host) → branch URL
+- [~] `deploy()` returns URL + state ✓; `destroy()` tears down ✓; `streamLogs()` from log group pending _(needs AWS)_
 
 ## 8. Networking (Phase 1 minimum)
 - [ ] Auto subdomain (`<app>.deploy.internal`) via Route 53
