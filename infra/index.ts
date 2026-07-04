@@ -16,6 +16,7 @@ import { certificate, zone } from "./dns.js";
 import { codeBuildRole, lambdaRole } from "./iam.js";
 import { buildProject } from "./build.js";
 import { deployProject } from "./deploy.js";
+import { apiUrl, web } from "./platform.js";
 import { baseDomain } from "./config.js";
 
 // --- Stack outputs (consumed by the app via Parameter Store / env) ---
@@ -43,3 +44,7 @@ export const wildcardCertificateArn = certificate.arn;
 
 export const codeBuildRoleArn = codeBuildRole.arn;
 export const lambdaRoleArn = lambdaRole.arn;
+
+export const apiFunctionUrl = apiUrl.functionUrl;
+export const webAppId = web?.id;
+export const webDefaultDomain = web?.defaultDomain;

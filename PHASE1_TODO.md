@@ -85,8 +85,8 @@ within free tiers except trivial Route 53 / CodeBuild overage.
 
 ## 10. Platform Infra (`infra/`, dogfood — all serverless)
 - [x] Pulumi stack: S3 (state+artifacts, versioned/private), DynamoDB (locks + idempotency+TTL), SQS (build/deploy + DLQs), ECR (scan+lifecycle), Route 53 zone, ACM wildcard cert _(authored + typechecks; not yet `pulumi up`'d)_
-- [ ] Deploy `apps/api` + workers as **Lambda** functions (Function URL + SQS triggers)
-- [ ] Neon project + pooled connection string in Parameter Store
+- [x] Deploy `apps/api` + workers + scheduled handlers as **Lambda** (Function URL + SQS event-source mappings + EventBridge schedules) + Amplify frontend — `infra/platform.ts` _(bundling/packaging step at bring-up — see DEPLOYMENT.md)_
+- [~] Neon project + pooled connection string in Parameter Store _(config/SSM steps documented in DEPLOYMENT.md)_
 - [x] IAM roles: CodeBuild (PowerUser + boundary-enforced `${prefix}-app-*` role mgmt, denies priv-esc) + Lambda exec role (scoped SQS/DynamoDB/artifacts-only/SSM-path/StartBuild-project-ARN) _(deeper per-project STS AssumeRole split → PHASE4 §7)_
 - [x] Confirm: no NAT Gateway, no ALB, no RDS, no Redis, no always-on compute
 
