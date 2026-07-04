@@ -170,6 +170,15 @@ export const envVars = pgTable("env_vars", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const domains = pgTable("domains", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  projectId: uuid("project_id").references(() => projects.id).notNull(),
+  hostname: text("hostname").notNull().unique(),
+  verifyToken: text("verify_token").notNull(),
+  verified: boolean("verified").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const platformConfig = pgTable("platform_config", {
   id: integer("id").primaryKey().default(1),
   config: jsonb("config").notNull(),

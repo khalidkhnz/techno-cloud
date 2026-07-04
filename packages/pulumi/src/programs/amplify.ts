@@ -10,6 +10,7 @@ export interface AmplifyProgramArgs {
   accessToken?: string;
   env?: Record<string, string>;
   tags?: Record<string, string>;
+  customDomain?: string;
 }
 
 /**
@@ -32,6 +33,14 @@ export function amplifyProgram(args: AmplifyProgramArgs): PulumiFn {
       branchName: args.branch,
       enableAutoBuild: true,
     });
+
+    if (args.customDomain) {
+      new aws.amplify.DomainAssociation(args.name, {
+        appId: app.id,
+        domainName: args.customDomain,
+        subDomains: [{ branchName: branch.branchName, prefix: "" }],
+      });
+    }
 
     return {
       appId: app.id,

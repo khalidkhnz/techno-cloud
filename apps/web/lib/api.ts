@@ -77,6 +77,18 @@ export const api = {
     req<{ ok: boolean }>(`/projects/${projectId}/environments/${environmentId}`, {
       method: "DELETE",
     }),
+  listDomains: (projectId: string) => req<Domain[]>(`/projects/${projectId}/domains`),
+  addDomain: (projectId: string, hostname: string) =>
+    req<{ domain: Domain; instructions: { type: string; name: string; value: string } }>(
+      `/projects/${projectId}/domains`,
+      { method: "POST", body: JSON.stringify({ hostname }) },
+    ),
+  verifyDomain: (projectId: string, domainId: string) =>
+    req<{ verified: boolean }>(`/projects/${projectId}/domains/${domainId}/verify`, {
+      method: "POST",
+    }),
+  deleteDomain: (projectId: string, domainId: string) =>
+    req<{ ok: boolean }>(`/projects/${projectId}/domains/${domainId}`, { method: "DELETE" }),
   listEnvVars: (projectId: string) =>
     req<EnvVar[]>(`/projects/${projectId}/env?scope=production`),
   upsertEnvVar: (projectId: string, body: { key: string; value: string; isSecret: boolean }) =>
@@ -131,6 +143,14 @@ export interface Environment {
   projectId: string;
   kind: string;
   name: string;
+}
+
+export interface Domain {
+  id: string;
+  projectId: string;
+  hostname: string;
+  verifyToken: string;
+  verified: boolean;
 }
 
 export interface FreeTierMeter {

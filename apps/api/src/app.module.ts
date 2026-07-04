@@ -12,6 +12,7 @@ import { WebhooksModule } from "./webhooks/webhooks.module.js";
 import { MetersModule } from "./meters/meters.module.js";
 import { EnvironmentsModule } from "./environments/environments.module.js";
 import { LogsModule } from "./logs/logs.module.js";
+import { DomainsModule } from "./domains/domains.module.js";
 import { PlatformConfigModule } from "./platform-config/platform-config.module.js";
 
 /**
@@ -32,6 +33,7 @@ import { PlatformConfigModule } from "./platform-config/platform-config.module.j
     MetersModule,
     EnvironmentsModule,
     LogsModule,
+    DomainsModule,
     PlatformConfigModule,
   ],
   controllers: [HealthController],

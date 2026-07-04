@@ -45,6 +45,7 @@ export class AmplifyTarget implements DeployTarget {
         accessToken: process.env.AMPLIFY_ACCESS_TOKEN,
         env: ctx.env,
         tags: appTags(ctx),
+        customDomain: ctx.customDomain,
       }),
       opts,
     );

@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { api, type Deployment, type EnvVar, type Environment, type Project } from "../../../lib/api";
+import { api, type Deployment, type Domain, type EnvVar, type Environment, type Project } from "../../../lib/api";
 
 const STATE_COLOR: Record<Deployment["state"], string> = {
   queued: "#888",
@@ -28,8 +28,26 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
 
   const [logs, setLogs] = useState<{ timestamp: number; message: string }[] | null>(null);
 
+  const [doms, setDoms] = useState<Domain[]>([]);
+  const [dom, setDom] = useState("");
+  const [domInstr, setDomInstr] = useState<{ name: string; value: string } | null>(null);
+
   const loadEnv = () => api.listEnvVars(id).then(setEnvVars).catch(() => {});
   const loadEnvs = () => api.listEnvironments(id).then(setEnvs).catch(() => {});
+  const loadDomains = () => api.listDomains(id).then(setDoms).catch(() => {});
+
+  async function addDomain(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    try {
+      const r = await api.addDomain(id, dom);
+      setDomInstr(r.instructions);
+      setDom("");
+      loadDomains();
+    } catch (e) {
+      setError(String(e));
+    }
+  }
 
   async function showLogs(deploymentId: string) {
     setError(null);
@@ -45,6 +63,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
     api.listDeployments(id).then(setDeployments).catch((e) => setError(String(e)));
     loadEnv();
     loadEnvs();
+    loadDomains();
   };
 
   async function addEnvironment(e: React.FormEvent) {
@@ -168,6 +187,45 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
           Add environment
         </button>
       </form>
+
+      <h2 className="mt-6">Custom domains</h2>
+      <ul className="mt-2 divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
+        {doms.map((d) => (
+          <li key={d.id} className="flex items-center justify-between px-4 py-2 text-sm">
+            <span>
+              {d.hostname}{" "}
+              {d.verified ? (
+                <span className="badge bg-green-100 text-green-700">verified</span>
+              ) : (
+                <span className="badge bg-amber-100 text-amber-700">pending</span>
+              )}
+            </span>
+            <span className="flex gap-2">
+              {!d.verified && (
+                <button className="btn btn-secondary" onClick={() => api.verifyDomain(id, d.id).then(loadDomains)}>
+                  verify
+                </button>
+              )}
+              <button className="btn btn-secondary" onClick={() => api.deleteDomain(id, d.id).then(loadDomains)}>
+                remove
+              </button>
+            </span>
+          </li>
+        ))}
+        {doms.length === 0 && <li className="muted px-4 py-2">No custom domains.</li>}
+      </ul>
+      <form onSubmit={addDomain} className="mt-2 flex flex-wrap items-center gap-2">
+        <input className="input max-w-[16rem]" placeholder="app.example.com" value={dom} onChange={(e) => setDom(e.target.value)} required />
+        <button className="btn" type="submit">
+          Add domain
+        </button>
+      </form>
+      {domInstr && (
+        <p className="muted mt-2">
+          Add a TXT record <code className="rounded bg-neutral-100 px-1">{domInstr.name}</code> ={" "}
+          <code className="rounded bg-neutral-100 px-1">{domInstr.value}</code>, then click verify.
+        </p>
+      )}
 
       <h2 className="mt-6">Environment variables</h2>
       <p className="muted">Scope: production. Secrets are stored in Parameter Store and shown as ***.</p>

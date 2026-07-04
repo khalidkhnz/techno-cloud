@@ -5,7 +5,7 @@
  * the resulting state back to the deployment. See PLAN.md §5.
  */
 
-import { and, db, deployments, environments, envVars, eq, projects } from "@techno-deployer/db";
+import { and, db, deployments, domains, environments, envVars, eq, projects } from "@techno-deployer/db";
 import { getSecret, withLock } from "@techno-deployer/aws";
 import type { DeployContext, DeployTargetKind, EnvironmentKind, SourceRef } from "@techno-deployer/core";
 import { env } from "@techno-deployer/env";
@@ -50,6 +50,14 @@ async function main(): Promise<void> {
   }
 
   const env = await resolveEnv(project.id, scope);
+  // Attach the first verified custom domain (production only).
+  const [verifiedDomain] =
+    scope === "production"
+      ? await db
+          .select()
+          .from(domains)
+          .where(and(eq(domains.projectId, project.id), eq(domains.verified, true)))
+      : [];
   const ctx: DeployContext = {
     project: {
       id: project.id,
@@ -62,6 +70,7 @@ async function main(): Promise<void> {
     deploymentId,
     artifact: { type: target.artifactType, ref: process.env.IMAGE_URI ?? deployment.imageUri ?? "" },
     env,
+    ...(verifiedDomain ? { customDomain: verifiedDomain.hostname } : {}),
   };
 
   // Preview mode (drift check): report divergence from desired state without applying.

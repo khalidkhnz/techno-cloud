@@ -19,11 +19,11 @@ the Costs Module reconciles estimated vs actual spend per project and enforces b
 - [ ] `previews.enabled` flag gates the path; max-previews-per-project guardrail
 
 ## 2. Custom Domains + Auto TLS
-- [ ] `Domain` model: hostname, project, verification + cert status
-- [ ] Verification flow (DNS TXT/CNAME instructions in UI)
-- [ ] **ACM** cert request + DNS validation automation (ACM is free)
-- [ ] Attach cert to CloudFront / Amplify / ALB + host routing
-- [ ] `customDomains.enabled` flag
+- [x] `Domain` model (hostname, project, verified) + migration 0007; CRUD API
+- [x] Verification flow — TXT instructions + real DNS TXT check (`POST /domains/:id/verify`) + UI
+- [~] **ACM** cert / DNS validation — Amplify `DomainAssociation` auto-provisions the cert; CloudFront/ALB ACM path pending
+- [~] Attach to **Amplify** on deploy when a verified domain exists (via `ctx.customDomain`); CloudFront/ALB attach pending
+- [x] `customDomains.enabled` flag gate (add rejected when disabled)
 
 ## 3. RBAC & Teams
 - [ ] Full role enforcement: `Owner / Admin / Developer / Viewer` scoped Team → Project
