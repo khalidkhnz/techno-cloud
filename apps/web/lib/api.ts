@@ -66,8 +66,13 @@ export const api = {
     req<Record<string, { monthlyLowUsd: number; monthlyHighUsd: number }>>("/estimates"),
   getPlatformConfig: () => req<PlatformConfig>("/platform-config"),
   getMeta: () => req<Meta>("/meta"),
-  detectRepo: (body: { provider: string; repo: string; ref?: string; token?: string }) =>
-    req<DetectResult>("/detect/repo", { method: "POST", body: JSON.stringify(body) }),
+  detectRepo: (body: {
+    provider: string;
+    repo: string;
+    ref?: string;
+    token?: string;
+    subdir?: string;
+  }) => req<DetectResult>("/detect/repo", { method: "POST", body: JSON.stringify(body) }),
   getMeters: () => req<FreeTierMeter[]>("/meters"),
   getCostSnapshots: () => req<CostSnapshot[]>("/costs/snapshots"),
   getCostAdvice: () =>
@@ -165,6 +170,15 @@ export interface FrameworkDetection {
   recommendedTarget: string;
   buildStrategy: "dockerfile" | "nixpacks" | "static";
   reason: string;
+  supportedTargets: string[];
+}
+
+export interface MetaProjectType {
+  id: string;
+  label: string;
+  supportedTargets: string[];
+  recommendedTarget: string;
+  buildStrategy: "dockerfile" | "nixpacks" | "static";
 }
 
 export interface DetectResult {
@@ -172,6 +186,7 @@ export interface DetectResult {
   plan: BuildPlan;
   inspected: boolean;
   note?: string;
+  needsToken: boolean;
   files: string[];
   dockerfile: string | null;
 }
@@ -214,6 +229,7 @@ export interface MetaProvider {
 export interface Meta {
   targets: MetaTarget[];
   providers: MetaProvider[];
+  projectTypes: MetaProjectType[];
   roles: string[];
   environmentKinds: string[];
 }

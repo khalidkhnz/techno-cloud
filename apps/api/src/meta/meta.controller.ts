@@ -1,6 +1,7 @@
 import { Controller, Get, UseGuards } from "@nestjs/common";
 import {
   ALWAYS_ON_TARGETS,
+  PROJECT_TYPES,
   SOURCE_PROVIDER_META,
   TARGET_CONFIG_SCHEMA,
   TARGET_META,
@@ -42,6 +43,7 @@ export class MetaController {
     return {
       targets,
       providers,
+      projectTypes: PROJECT_TYPES,
       roles: ["owner", "admin", "developer", "viewer"] as const,
       environmentKinds: ["development", "preview", "production"] as const,
     };

@@ -25,7 +25,51 @@ export interface FrameworkDetection {
   recommendedTarget: DeployTargetKind;
   buildStrategy: BuildStrategy;
   reason: string;
+  /** Targets this framework can deploy to — used to filter the target picker after detection. */
+  supportedTargets: DeployTargetKind[];
 }
+
+const ALL_TARGETS: DeployTargetKind[] = [
+  "lambda",
+  "amplify",
+  "static-cdn",
+  "apprunner",
+  "ecs-fargate",
+  "ec2",
+];
+
+const NEXT_TARGETS: DeployTargetKind[] = ["amplify", "lambda", "ecs-fargate", "apprunner"];
+const SPA_TARGETS: DeployTargetKind[] = ["static-cdn", "amplify"];
+const CONTAINER_TARGETS: DeployTargetKind[] = ["lambda", "ecs-fargate", "apprunner", "ec2"];
+
+/** Which targets each detected framework can deploy to. */
+const SUPPORTED: Record<string, DeployTargetKind[]> = {
+  next: NEXT_TARGETS,
+  vite: SPA_TARGETS,
+  "create-react-app": SPA_TARGETS,
+  static: ["static-cdn"],
+  "node-api": CONTAINER_TARGETS,
+  docker: CONTAINER_TARGETS,
+  unknown: ALL_TARGETS,
+};
+
+/** Manually-selectable project types (when auto-detection fails or is overridden). */
+export interface ProjectType {
+  id: string;
+  label: string;
+  supportedTargets: DeployTargetKind[];
+  recommendedTarget: DeployTargetKind;
+  buildStrategy: BuildStrategy;
+}
+
+export const PROJECT_TYPES: ProjectType[] = [
+  { id: "next", label: "Next.js", supportedTargets: NEXT_TARGETS, recommendedTarget: "amplify", buildStrategy: "nixpacks" },
+  { id: "spa", label: "Static site / SPA (Vite, CRA)", supportedTargets: SPA_TARGETS, recommendedTarget: "static-cdn", buildStrategy: "static" },
+  { id: "static", label: "Plain static HTML", supportedTargets: ["static-cdn"], recommendedTarget: "static-cdn", buildStrategy: "static" },
+  { id: "node-api", label: "Node API (Express / Nest / Fastify)", supportedTargets: CONTAINER_TARGETS, recommendedTarget: "lambda", buildStrategy: "nixpacks" },
+  { id: "docker", label: "Docker (has a Dockerfile)", supportedTargets: CONTAINER_TARGETS, recommendedTarget: "lambda", buildStrategy: "dockerfile" },
+  { id: "other", label: "Other / custom", supportedTargets: ALL_TARGETS, recommendedTarget: "lambda", buildStrategy: "nixpacks" },
+];
 
 function hasDep(pkg: PackageJsonLike | undefined, name: string): boolean {
   if (!pkg) return false;
@@ -36,7 +80,15 @@ function hasDep(pkg: PackageJsonLike | undefined, name: string): boolean {
  * Precedence: explicit Dockerfile sets the build strategy but the target still follows the
  * detected framework. Framework detection prefers the most specific signal.
  */
+type DetectionBase = Omit<FrameworkDetection, "supportedTargets">;
+
+/** Attaches the supported-target list for the detected framework. */
 export function detectFramework(input: SourceInspection): FrameworkDetection {
+  const base = detectFrameworkBase(input);
+  return { ...base, supportedTargets: SUPPORTED[base.framework] ?? ALL_TARGETS };
+}
+
+function detectFrameworkBase(input: SourceInspection): DetectionBase {
   const { files, packageJson: pkg } = input;
   const hasDockerfile = files.includes("Dockerfile");
   const dockerStrategy: BuildStrategy = hasDockerfile ? "dockerfile" : "nixpacks";

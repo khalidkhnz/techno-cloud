@@ -10,6 +10,7 @@ export interface InspectResult {
   inspection: SourceInspection;
   inspected: boolean;
   note?: string;
+  needsToken?: boolean; // 404 — repo private or not found; a token may be required
   dockerfile?: string; // raw Dockerfile content when the repo has one (masked before display)
 }
 
@@ -21,18 +22,24 @@ export async function inspectRepo(opts: {
   repo: string;
   ref?: string;
   token?: string;
+  subdir?: string;
 }): Promise<InspectResult> {
-  const { provider, repo, ref, token } = opts;
+  const { provider, repo, ref, token, subdir } = opts;
   if (!repo) return { inspection: EMPTY, inspected: false, note: "No repository provided." };
 
   if (provider === "github") {
     try {
-      return await inspectGithub(repo, ref, token);
+      return await inspectGithub(repo, ref, token, subdir);
     } catch (err) {
+      const msg = (err as Error).message;
+      const notFound = msg.includes("404");
       return {
         inspection: EMPTY,
         inspected: false,
-        note: `Could not inspect GitHub repo (${(err as Error).message}). Add a token for private repos.`,
+        needsToken: notFound && !token,
+        note: notFound
+          ? "Repository not found or private — add an access token to analyze it."
+          : `Could not inspect GitHub repo (${msg}).`,
       };
     }
   }
@@ -44,23 +51,34 @@ export async function inspectRepo(opts: {
   };
 }
 
-async function inspectGithub(repo: string, ref?: string, token?: string): Promise<InspectResult> {
+async function inspectGithub(
+  repo: string,
+  ref?: string,
+  token?: string,
+  subdir?: string,
+): Promise<InspectResult> {
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
     "User-Agent": "techno-deployer",
   };
   if (token) headers.Authorization = `Bearer ${token}`;
   const suffix = ref ? `?ref=${encodeURIComponent(ref)}` : "";
+  const dir = (subdir ?? "").replace(/^\/+|\/+$/g, ""); // trim slashes
+  const prefix = dir ? `${dir}/` : "";
 
-  const rootRes = await fetch(`https://api.github.com/repos/${repo}/contents${suffix}`, { headers });
+  const rootRes = await fetch(
+    `https://api.github.com/repos/${repo}/contents/${dir}${suffix}`,
+    { headers },
+  );
   if (!rootRes.ok) throw new Error(`HTTP ${rootRes.status}`);
   const root = (await rootRes.json()) as Array<{ name: string; type: string }>;
   const files = Array.isArray(root) ? root.map((f) => f.name) : [];
 
   const readFile = async (path: string): Promise<string | undefined> => {
-    const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}${suffix}`, {
-      headers,
-    });
+    const res = await fetch(
+      `https://api.github.com/repos/${repo}/contents/${prefix}${path}${suffix}`,
+      { headers },
+    );
     if (!res.ok) return undefined;
     const body = (await res.json()) as { content?: string; encoding?: string };
     if (body.content && body.encoding === "base64") {

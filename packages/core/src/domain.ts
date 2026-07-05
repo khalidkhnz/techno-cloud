@@ -34,6 +34,8 @@ export interface SourceRef {
   ref?: string; // branch / tag / commit
   zipKey?: string; // S3 key for zip uploads
   token?: string; // optional access token for cloning private repos
+  subdir?: string; // path to the app from the repo root (monorepos)
+  projectType?: string; // manual project-type override when auto-detection fails
 }
 
 /** Normalized source, staged in S3, ready for the build farm. */
