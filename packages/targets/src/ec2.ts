@@ -17,10 +17,23 @@ export class Ec2Target implements DeployTarget {
 
   async deploy(ctx: DeployContext, opts?: DeployOptions): Promise<DeployResult> {
     const name = appName(ctx);
+    const c = ctx.targetConfig ?? {};
+    const str = (v: unknown) => (typeof v === "string" && v ? v : undefined);
+    const int = (v: unknown) => (Number.isFinite(Number(v)) ? Number(v) : undefined);
     return runDeploy(
       ctx,
       name,
-      ec2Program({ name, imageUri: ctx.artifact.ref, boundaryArn: boundaryArn(), tags: appTags(ctx) }),
+      ec2Program({
+        name,
+        imageUri: ctx.artifact.ref,
+        boundaryArn: boundaryArn(),
+        tags: appTags(ctx),
+        instanceType: str(c.instanceType),
+        os: str(c.os),
+        storageGb: int(c.storageGb),
+        keyName: str(c.keyPair),
+        port: int(c.port),
+      }),
       opts,
     );
   }

@@ -55,6 +55,7 @@ export interface DeployContext {
   /** Built artifact reference (ECR image URI, S3 static prefix, or repo for Amplify). */
   artifact: { type: "image" | "zip" | "static" | "repo"; ref: string };
   env: Record<string, string>; // resolved env vars (secret values injected at deploy)
+  targetConfig?: Record<string, string | number | boolean>; // per-target sizing/config
   subdomain?: string;
   customDomain?: string;
 }

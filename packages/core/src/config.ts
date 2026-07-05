@@ -198,6 +198,14 @@ export const TARGET_CONFIG_SCHEMA: Record<DeployTargetKind, TargetConfigField[]>
       ],
     },
     { key: "storageGb", label: "Root storage", type: "number", default: 20, unit: "GB", min: 8, max: 1000, showIf: { key: "mode", equals: "new" } },
+    {
+      key: "keyPair",
+      label: "SSH key pair",
+      type: "text",
+      placeholder: "existing key pair name (optional)",
+      showIf: { key: "mode", equals: "new" },
+      help: "An existing EC2 key pair for SSH. Leave blank to use SSM Session Manager (keyless).",
+    },
   ],
 };
 

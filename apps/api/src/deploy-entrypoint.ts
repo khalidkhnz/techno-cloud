@@ -72,6 +72,7 @@ async function main(): Promise<void> {
     deploymentId,
     artifact: { type: target.artifactType, ref: process.env.IMAGE_URI ?? deployment.imageUri ?? "" },
     env: appEnv,
+    targetConfig: (project.targetConfig as Record<string, string | number | boolean>) ?? {},
     ...(verifiedDomain ? { customDomain: verifiedDomain.hostname } : {}),
   };
 
