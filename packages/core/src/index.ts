@@ -4,3 +4,4 @@ export * from "./detect.js";
 export * from "./domain.js";
 export * from "./targets.js";
 export * from "./sources.js";
+export * from "./nginx.js";

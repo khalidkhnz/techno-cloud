@@ -73,6 +73,11 @@ export const api = {
     token?: string;
     subdir?: string;
   }) => req<DetectResult>("/detect/repo", { method: "POST", body: JSON.stringify(body) }),
+  getInstanceNginx: (body: { instanceId: string; port?: number; serverName?: string }) =>
+    req<{ current: string | null; appended: string; note?: string }>("/ec2/nginx", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   getMeters: () => req<FreeTierMeter[]>("/meters"),
   getCostSnapshots: () => req<CostSnapshot[]>("/costs/snapshots"),
   getCostAdvice: () =>

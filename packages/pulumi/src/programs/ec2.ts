@@ -1,6 +1,7 @@
 import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
 import type { PulumiFn } from "@pulumi/pulumi/automation/index.js";
+import { nginxServerBlock } from "@techno-deployer/core";
 
 export interface Ec2ProgramArgs {
   name: string;
@@ -93,6 +94,7 @@ export function ec2Program(args: Ec2ProgramArgs): PulumiFn {
     });
 
     const registry = args.imageUri.split("/")[0];
+    const nginxConf = nginxServerBlock({ port });
     const userData = aws.getRegionOutput().name.apply((region) =>
       Buffer.from(
         [
@@ -105,16 +107,7 @@ export function ec2Program(args: Ec2ProgramArgs): PulumiFn {
           `aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${registry}`,
           `docker run -d --restart always -p 127.0.0.1:${port}:${port} ${args.imageUri}`,
           "cat > /etc/nginx/conf.d/app.conf <<'NGINX'",
-          "server {",
-          "  listen 80 default_server;",
-          "  location / {",
-          `    proxy_pass http://127.0.0.1:${port};`,
-          "    proxy_set_header Host $host;",
-          "    proxy_set_header X-Real-IP $remote_addr;",
-          "    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;",
-          "    proxy_set_header X-Forwarded-Proto $scheme;",
-          "  }",
-          "}",
+          nginxConf,
           "NGINX",
           "rm -f /etc/nginx/conf.d/default.conf 2>/dev/null || true",
           "nginx -t && systemctl reload nginx",

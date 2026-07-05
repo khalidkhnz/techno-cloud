@@ -17,9 +17,11 @@ import { PageHeader } from "@/components/app/page-header";
 import { TargetBadge } from "@/components/app/target-badge";
 import { BuildPlanView } from "@/components/app/build-plan";
 import { DockerfilePreview } from "@/components/app/dockerfile-preview";
+import { NginxPreview } from "@/components/app/nginx-preview";
 import { TargetConfigForm, type ConfigValue } from "@/components/app/target-config-form";
 import { FadeIn } from "@/components/motion";
 import { generateDockerfile, maskSecrets } from "@/lib/dockerfile";
+import { generateNginxConfig } from "@/lib/nginx";
 import { estimateTargetCost } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +37,7 @@ import { Separator } from "@/components/ui/separator";
 import { useCreateProject } from "@/lib/query/projects";
 import { useEstimates } from "@/lib/query/costs";
 import { useMeta } from "@/lib/query/meta";
-import { useDetectRepo } from "@/lib/query/detect";
+import { useDetectRepo, useInstanceNginx } from "@/lib/query/detect";
 
 const DEFAULT_TEAM = "00000000-0000-0000-0000-000000000000";
 
@@ -104,6 +106,17 @@ export default function NewProjectPage() {
       startCommand: startCmd,
     });
   const previewContent = maskSecrets(rawPreview, [token].filter(Boolean));
+
+  // EC2 Nginx preview: config that will be written (new) or appended (existing), with a live diff.
+  const nginx = useInstanceNginx();
+  const isEc2 = target === "ec2";
+  const ec2Mode = String(targetConfig.mode ?? "new");
+  const ec2Port = Number(targetConfig.port) || 8080;
+  const ec2InstanceId = String(targetConfig.instanceId ?? "");
+  const appendedNginx = generateNginxConfig({
+    port: ec2Port,
+    ...(ec2Mode === "existing" ? { serverName: `${name || "app"}.your-domain.com` } : {}),
+  });
   const previewSubtitle = repoDockerfile
     ? "From your repository — the build uses this as-is."
     : buildStrategy === "static"
@@ -470,12 +483,36 @@ export default function NewProjectPage() {
           </div>
         </form>
 
-        <aside className="lg:sticky lg:top-8 lg:h-fit">
+        <aside className="grid gap-4 lg:sticky lg:top-8 lg:h-fit">
           <DockerfilePreview
             title={repoDockerfile ? "Dockerfile" : "Dockerfile · preview"}
             subtitle={previewSubtitle}
             content={previewContent}
           />
+
+          {isEc2 && (
+            <div className="grid gap-2">
+              {ec2Mode === "existing" && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className="w-fit"
+                  disabled={!ec2InstanceId || nginx.isPending}
+                  onClick={() => nginx.mutate({ instanceId: ec2InstanceId, port: ec2Port })}
+                >
+                  {nginx.isPending ? "Reading instance…" : "Load current config from instance"}
+                </Button>
+              )}
+              <NginxPreview
+                mode={ec2Mode === "existing" ? "existing" : "new"}
+                appended={appendedNginx}
+                current={ec2Mode === "existing" ? nginx.data?.current : undefined}
+                note={ec2Mode === "existing" ? nginx.data?.note : undefined}
+                instanceId={ec2InstanceId}
+              />
+            </div>
+          )}
         </aside>
       </div>
     </FadeIn>

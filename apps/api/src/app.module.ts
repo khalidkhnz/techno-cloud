@@ -16,6 +16,7 @@ import { DomainsModule } from "./domains/domains.module.js";
 import { TeamsModule } from "./teams/teams.module.js";
 import { CostsModule } from "./costs/costs.module.js";
 import { MetaModule } from "./meta/meta.module.js";
+import { Ec2Module } from "./ec2/ec2.module.js";
 import { PlatformConfigModule } from "./platform-config/platform-config.module.js";
 
 /**
@@ -40,6 +41,7 @@ import { PlatformConfigModule } from "./platform-config/platform-config.module.j
     TeamsModule,
     CostsModule,
     MetaModule,
+    Ec2Module,
     PlatformConfigModule,
   ],
   controllers: [HealthController],
