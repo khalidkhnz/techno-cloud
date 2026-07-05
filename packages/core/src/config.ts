@@ -181,9 +181,20 @@ export const TARGET_CONFIG_SCHEMA: Record<DeployTargetKind, TargetConfigField[]>
       type: "select",
       default: "al2023",
       showIf: { key: "mode", equals: "new" },
+      help: "10 most popular official images. The exact AMI is resolved per region at deploy time (SSM public parameters).",
+      // Values map to well-known SSM public-parameter aliases so a deploy-time resolver can look up
+      // the latest official AMI id per region without hardcoding image ids.
       options: [
         { label: "Amazon Linux 2023", value: "al2023" },
+        { label: "Amazon Linux 2", value: "al2" },
+        { label: "Ubuntu 24.04 LTS", value: "ubuntu24" },
         { label: "Ubuntu 22.04 LTS", value: "ubuntu22" },
+        { label: "Ubuntu 20.04 LTS", value: "ubuntu20" },
+        { label: "Debian 12", value: "debian12" },
+        { label: "Debian 11", value: "debian11" },
+        { label: "Rocky Linux 9", value: "rocky9" },
+        { label: "RHEL 9", value: "rhel9" },
+        { label: "SUSE Linux Enterprise 15", value: "sles15" },
       ],
     },
     { key: "storageGb", label: "Root storage", type: "number", default: 20, unit: "GB", min: 8, max: 1000, showIf: { key: "mode", equals: "new" } },

@@ -20,6 +20,7 @@ import { DockerfilePreview } from "@/components/app/dockerfile-preview";
 import { TargetConfigForm, type ConfigValue } from "@/components/app/target-config-form";
 import { FadeIn } from "@/components/motion";
 import { generateDockerfile, maskSecrets } from "@/lib/dockerfile";
+import { estimateTargetCost } from "@/lib/pricing";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -87,7 +88,9 @@ export default function NewProjectPage() {
   const targets = allowedKinds ? allTargets.filter((t) => allowedKinds.includes(t.kind)) : allTargets;
   const selectedTarget = targets.find((t) => t.kind === target) ?? allTargets.find((t) => t.kind === target);
   const targetSchema = selectedTarget?.configSchema ?? [];
-  const est = estimates?.[target];
+  // Config-aware live estimate; fall back to the target's default range before config is set.
+  const cost = estimateTargetCost(target, targetConfig);
+  const fallback = estimates?.[target];
 
   // Live Dockerfile preview: repo's own if present, else generated from strategy + commands.
   const buildStrategy = effectiveType?.buildStrategy ?? detection?.detection.buildStrategy ?? "nixpacks";
@@ -388,12 +391,17 @@ export default function NewProjectPage() {
                         Scales to zero — near-free when idle.
                       </span>
                     )}
-                    {est && (
-                      <span className="font-mono text-muted-foreground">
-                        Est. ~${est.monthlyLowUsd}–${est.monthlyHighUsd}/mo
-                      </span>
-                    )}
+                    <span className="font-mono text-foreground">
+                      Est.{" "}
+                      {cost.low === cost.high ? `~$${cost.high}` : `~$${cost.low}–$${cost.high}`}/mo
+                    </span>
                   </div>
+                  {cost.note && <p className="mt-1.5 text-[11px] text-muted-foreground">{cost.note}</p>}
+                  {cost.high === 0 && fallback && (
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      Baseline ~${fallback.monthlyLowUsd}–${fallback.monthlyHighUsd}/mo
+                    </p>
+                  )}
                 </div>
               )}
 

@@ -38,7 +38,7 @@ const ALL_TARGETS: DeployTargetKind[] = [
   "ec2",
 ];
 
-const NEXT_TARGETS: DeployTargetKind[] = ["amplify", "lambda", "ecs-fargate", "apprunner"];
+const NEXT_TARGETS: DeployTargetKind[] = ["amplify", "lambda", "ecs-fargate", "apprunner", "ec2"];
 const SPA_TARGETS: DeployTargetKind[] = ["static-cdn", "amplify"];
 const CONTAINER_TARGETS: DeployTargetKind[] = ["lambda", "ecs-fargate", "apprunner", "ec2"];
 
