@@ -9,6 +9,7 @@ export interface EcsFargateProgramArgs {
   port?: number;
   cpu?: string;
   memory?: string;
+  desiredCount?: number;
   env?: Record<string, string>;
   tags?: Record<string, string>;
 }
@@ -97,7 +98,7 @@ export function ecsFargateProgram(args: EcsFargateProgramArgs): PulumiFn {
       {
         name: args.name,
         cluster: cluster.arn,
-        desiredCount: 1,
+        desiredCount: args.desiredCount ?? 1,
         launchType: "FARGATE",
         taskDefinition: taskDef.arn,
         networkConfiguration: {

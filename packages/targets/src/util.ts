@@ -9,6 +9,18 @@ export function appName(ctx: DeployContext): string {
   return `${appPrefix()}-app-${ctx.project.id.slice(0, 8)}-${ctx.environmentName}`;
 }
 
+/** Typed accessors over a project's per-target config (memory, cpu, instanceType, …). */
+export function targetCfg(ctx: DeployContext) {
+  const c = ctx.targetConfig ?? {};
+  return {
+    str: (k: string): string | undefined =>
+      typeof c[k] === "string" && c[k] !== "" ? String(c[k]) : undefined,
+    int: (k: string): number | undefined =>
+      c[k] !== undefined && Number.isFinite(Number(c[k])) ? Number(c[k]) : undefined,
+    bool: (k: string): boolean => c[k] === true || c[k] === "true",
+  };
+}
+
 /** Cost-attribution tags applied to deployed resources (Cost Explorer groups on these). */
 export function appTags(ctx: DeployContext): Record<string, string> {
   return {

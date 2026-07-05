@@ -16,7 +16,7 @@ import type {
 } from "@techno-deployer/core";
 import { estimateAmplify } from "@techno-deployer/costs";
 import { amplifyProgram } from "@techno-deployer/pulumi";
-import { appName, appTags, runDeploy, runDestroy } from "./util.js";
+import { appName, appTags, runDeploy, runDestroy, targetCfg } from "./util.js";
 
 function repoUrl(source: SourceRef): string {
   const host =
@@ -35,14 +35,15 @@ export class AmplifyTarget implements DeployTarget {
   async deploy(ctx: DeployContext, opts?: DeployOptions): Promise<DeployResult> {
     const name = appName(ctx);
     const source = ctx.project.source;
+    const branch = targetCfg(ctx).str("branch") ?? source.ref ?? "main";
     return runDeploy(
       ctx,
       name,
       amplifyProgram({
         name,
         repository: repoUrl(source),
-        branch: source.ref ?? "main",
-        accessToken: process.env.AMPLIFY_ACCESS_TOKEN,
+        branch,
+        accessToken: source.token ?? process.env.AMPLIFY_ACCESS_TOKEN,
         env: ctx.env,
         tags: appTags(ctx),
         customDomain: ctx.customDomain,

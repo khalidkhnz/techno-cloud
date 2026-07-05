@@ -4,6 +4,7 @@ import type { PulumiFn } from "@pulumi/pulumi/automation/index.js";
 
 export interface StaticCdnProgramArgs {
   name: string;
+  spa?: boolean; // SPA fallback: serve index.html for 403/404 (client-side routing)
   tags?: Record<string, string>;
 }
 
@@ -49,6 +50,15 @@ export function staticCdnProgram(args: StaticCdnProgramArgs): PulumiFn {
       },
       restrictions: { geoRestriction: { restrictionType: "none" } },
       viewerCertificate: { cloudfrontDefaultCertificate: true },
+      // SPA client-side routing: serve index.html (200) for 403/404 from S3.
+      ...(args.spa
+        ? {
+            customErrorResponses: [
+              { errorCode: 403, responseCode: 200, responsePagePath: "/index.html" },
+              { errorCode: 404, responseCode: 200, responsePagePath: "/index.html" },
+            ],
+          }
+        : {}),
       tags: args.tags,
     });
 

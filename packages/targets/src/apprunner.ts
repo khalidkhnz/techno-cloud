@@ -9,7 +9,7 @@ import type {
 } from "@techno-deployer/core";
 import { estimateAppRunner } from "@techno-deployer/costs";
 import { appRunnerProgram } from "@techno-deployer/pulumi";
-import { appName, appTags, boundaryArn, runDeploy, runDestroy } from "./util.js";
+import { appName, appTags, boundaryArn, runDeploy, runDestroy, targetCfg } from "./util.js";
 
 export class AppRunnerTarget implements DeployTarget {
   readonly kind = "apprunner" as const;
@@ -17,10 +17,20 @@ export class AppRunnerTarget implements DeployTarget {
 
   async deploy(ctx: DeployContext, opts?: DeployOptions): Promise<DeployResult> {
     const name = appName(ctx);
+    const c = targetCfg(ctx);
     return runDeploy(
       ctx,
       name,
-      appRunnerProgram({ name, imageUri: ctx.artifact.ref, boundaryArn: boundaryArn(), env: ctx.env, tags: appTags(ctx) }),
+      appRunnerProgram({
+        name,
+        imageUri: ctx.artifact.ref,
+        boundaryArn: boundaryArn(),
+        env: ctx.env,
+        tags: appTags(ctx),
+        cpu: c.str("cpu"),
+        memoryMb: c.int("memoryMb"),
+        port: c.int("port"),
+      }),
       opts,
     );
   }

@@ -9,7 +9,7 @@ import type {
 } from "@techno-deployer/core";
 import { estimateStaticCdn } from "@techno-deployer/costs";
 import { staticCdnProgram } from "@techno-deployer/pulumi";
-import { appName, appTags, runDeploy, runDestroy } from "./util.js";
+import { appName, appTags, runDeploy, runDestroy, targetCfg } from "./util.js";
 
 export class StaticCdnTarget implements DeployTarget {
   readonly kind = "static-cdn" as const;
@@ -17,7 +17,12 @@ export class StaticCdnTarget implements DeployTarget {
 
   async deploy(ctx: DeployContext, opts?: DeployOptions): Promise<DeployResult> {
     const name = appName(ctx);
-    return runDeploy(ctx, name, staticCdnProgram({ name, tags: appTags(ctx) }), opts);
+    return runDeploy(
+      ctx,
+      name,
+      staticCdnProgram({ name, spa: targetCfg(ctx).bool("spa"), tags: appTags(ctx) }),
+      opts,
+    );
   }
 
   async getStatus(_deploymentId: string): Promise<DeploymentStatus> {

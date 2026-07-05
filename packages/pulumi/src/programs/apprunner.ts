@@ -7,9 +7,19 @@ export interface AppRunnerProgramArgs {
   imageUri: string;
   boundaryArn: string;
   port?: number;
+  cpu?: string; // vCPU as "0.25" | "0.5" | "1" | "2"
+  memoryMb?: number;
   env?: Record<string, string>;
   tags?: Record<string, string>;
 }
+
+// App Runner expects CPU in millicores; map from vCPU.
+const APPRUNNER_CPU: Record<string, string> = {
+  "0.25": "256",
+  "0.5": "512",
+  "1": "1024",
+  "2": "2048",
+};
 
 /** Deploy program: an App Runner service from an ECR image (always-on — no scale-to-zero). */
 export function appRunnerProgram(args: AppRunnerProgramArgs): PulumiFn {
@@ -48,7 +58,10 @@ export function appRunnerProgram(args: AppRunnerProgramArgs): PulumiFn {
           },
         },
       },
-      instanceConfiguration: { cpu: "1024", memory: "2048" },
+      instanceConfiguration: {
+        cpu: APPRUNNER_CPU[args.cpu ?? "1"] ?? "1024",
+        memory: String(args.memoryMb ?? 2048),
+      },
       tags: args.tags,
     });
 

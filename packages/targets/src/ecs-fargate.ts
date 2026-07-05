@@ -9,7 +9,7 @@ import type {
 } from "@techno-deployer/core";
 import { estimateFargate } from "@techno-deployer/costs";
 import { ecsFargateProgram } from "@techno-deployer/pulumi";
-import { appName, appTags, boundaryArn, runDeploy, runDestroy } from "./util.js";
+import { appName, appTags, boundaryArn, runDeploy, runDestroy, targetCfg } from "./util.js";
 
 export class EcsFargateTarget implements DeployTarget {
   readonly kind = "ecs-fargate" as const;
@@ -17,10 +17,22 @@ export class EcsFargateTarget implements DeployTarget {
 
   async deploy(ctx: DeployContext, opts?: DeployOptions): Promise<DeployResult> {
     const name = appName(ctx);
+    const c = targetCfg(ctx);
+    const memoryMb = c.int("memoryMb");
     return runDeploy(
       ctx,
       name,
-      ecsFargateProgram({ name, imageUri: ctx.artifact.ref, boundaryArn: boundaryArn(), env: ctx.env, tags: appTags(ctx) }),
+      ecsFargateProgram({
+        name,
+        imageUri: ctx.artifact.ref,
+        boundaryArn: boundaryArn(),
+        env: ctx.env,
+        tags: appTags(ctx),
+        cpu: c.str("cpu"),
+        memory: memoryMb !== undefined ? String(memoryMb) : undefined,
+        desiredCount: c.int("desiredCount"),
+        port: c.int("port"),
+      }),
       opts,
     );
   }

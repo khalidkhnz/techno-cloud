@@ -9,6 +9,8 @@ export interface LambdaProgramArgs {
   boundaryArn: string;
   env?: Record<string, string>;
   memoryMb?: number;
+  timeoutSec?: number;
+  architecture?: string;
   tags?: Record<string, string>;
 }
 
@@ -40,9 +42,9 @@ export function lambdaProgram(args: LambdaProgramArgs): PulumiFn {
       packageType: "Image",
       imageUri: args.imageUri,
       role: role.arn,
-      architectures: ["arm64"],
+      architectures: [args.architecture === "x86_64" ? "x86_64" : "arm64"],
       memorySize: args.memoryMb ?? 512,
-      timeout: 30,
+      timeout: args.timeoutSec ?? 30,
       ...(args.env ? { environment: { variables: args.env } } : {}),
       ...(args.tags ? { tags: args.tags } : {}),
     });
